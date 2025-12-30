@@ -33,48 +33,6 @@ Sistema de gestión clínica desarrollado con React y Vite. Una aplicación web 
 ### Utilidades
 - **Sonner** - Sistema de notificaciones toast
 
-## 📦 Instalación
-
-### Prerrequisitos
-
-- Node.js 18+ 
-- npm o yarn
-
-### Pasos
-
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/JuanMeza-G/SI-CO-J-S.git
-   cd SICO
-   ```
-
-2. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
-
-3. **Configurar variables de entorno**
-   
-   Crea un archivo `.env` en la raíz del proyecto con las siguientes variables:
-   ```env
-   VITE_SUPABASE_URL=tu_url_de_supabase
-   VITE_SUPABASE_ANON_KEY=tu_clave_anonima_de_supabase
-   ```
-
-4. **Iniciar el servidor de desarrollo**
-   ```bash
-   npm run dev
-   ```
-
-   La aplicación estará disponible en `http://localhost:5173`
-
-## 🛠️ Scripts Disponibles
-
-- `npm run dev` - Inicia el servidor de desarrollo
-- `npm run build` - Construye la aplicación para producción
-- `npm run preview` - Previsualiza la build de producción
-- `npm run lint` - Ejecuta ESLint para revisar el código
-
 ## 📁 Estructura del Proyecto
 
 ```
@@ -123,15 +81,6 @@ SICO/
 └── README.md
 ```
 
-## 🔐 Configuración de Supabase
-
-Este proyecto utiliza Supabase para autenticación y base de datos. Asegúrate de:
-
-1. Crear un proyecto en [Supabase](https://supabase.com)
-2. Configurar las políticas de seguridad (RLS)
-3. Ejecutar el script SQL en `src/utils/schema_update.sql` si es necesario
-4. Configurar las variables de entorno mencionadas anteriormente
-
 ## 🎨 Características de UI/UX
 
 - **Tema Oscuro/Claro**: El tema se persiste en localStorage y respeta las preferencias del sistema
@@ -145,8 +94,4 @@ Este proyecto es privado.
 
 ## 👥 Autores
 
-J&S
-
----
-
-**Nota**: Asegúrate de configurar correctamente las variables de entorno antes de iniciar el proyecto. Sin las credenciales de Supabase, la aplicación no funcionará correctamente.
+Juan Sebastian Meza Garcia
