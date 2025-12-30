@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Environment variables (importante para seguridad)
+.env
+.env.local
+.env*.local
+
+# Build outputs (se generan al hacer build)
+dist/
+dist-ssr/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Cache de Vite
+.vite/
+.eslintcache
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+
+# Supabase local (si usas Supabase CLI)
+.supabase/
