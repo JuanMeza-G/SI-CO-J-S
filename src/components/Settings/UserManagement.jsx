@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { toast } from "sonner";
 import {
-  FaTrash,
   FaUserShield,
-  FaEdit,
   FaUserCircle,
   FaChevronDown,
+  FaPowerOff,
+  FaCheckCircle,
 } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { MdEmail } from "react-icons/md";
@@ -18,8 +18,8 @@ const UserManagement = () => {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [toggleModalOpen, setToggleModalOpen] = useState(false);
+  const [userToToggle, setUserToToggle] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -63,30 +63,39 @@ const UserManagement = () => {
     }
   };
 
-  const confirmDeleteUser = (user) => {
-    setUserToDelete(user);
-    setDeleteModalOpen(true);
+  const confirmToggleUser = (user) => {
+    setUserToToggle(user);
+    setToggleModalOpen(true);
   };
 
-  const handleDeleteUser = async () => {
-    if (!userToDelete) return;
+  const handleToggleUser = async () => {
+    if (!userToToggle) return;
 
     try {
+      // Si is_active es null o undefined, tratarlo como true (activo)
+      const currentStatus = userToToggle.is_active ?? true;
+      const newStatus = !currentStatus;
       const { error } = await supabase
         .from("users")
-        .delete()
-        .eq("id", userToDelete.id);
+        .update({ is_active: newStatus })
+        .eq("id", userToToggle.id);
 
       if (error) throw error;
 
-      setUsers(users.filter((user) => user.id !== userToDelete.id));
-      toast.success("Usuario eliminado correctamente");
+      setUsers(
+        users.map((user) =>
+          user.id === userToToggle.id ? { ...user, is_active: newStatus } : user
+        )
+      );
+      toast.success(
+        `Usuario ${newStatus ? "activado" : "desactivado"} correctamente`
+      );
     } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error("Error al eliminar usuario");
+      console.error("Error toggling user status:", error);
+      toast.error("Error al cambiar el estado del usuario");
     } finally {
-      setDeleteModalOpen(false);
-      setUserToDelete(null);
+      setToggleModalOpen(false);
+      setUserToToggle(null);
     }
   };
 
@@ -122,6 +131,9 @@ const UserManagement = () => {
               <th scope="col" className="px-6 py-3 font-semibold">
                 Proveedores
               </th>
+              <th scope="col" className="px-6 py-3 font-semibold">
+                Estado
+              </th>
               <th scope="col" className="px-6 py-3 font-semibold text-right">
                 Acciones
               </th>
@@ -131,7 +143,7 @@ const UserManagement = () => {
             {users.length === 0 ? (
               <tr>
                 <td
-                  colSpan="4"
+                  colSpan="5"
                   className="px-6 py-8 text-center text-gray-500 dark:text-[#a3a3a3]"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
@@ -144,7 +156,9 @@ const UserManagement = () => {
               users.map((user) => (
                 <tr
                   key={user.id}
-                  className="bg-white dark:bg-[#111111] hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150"
+                  className={`bg-white dark:bg-[#111111] hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150 ${
+                    (user.is_active ?? true) === false ? "opacity-60" : ""
+                  }`}
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -239,19 +253,36 @@ const UserManagement = () => {
                       )}
                     </div>
                   </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      {(user.is_active ?? true) !== false ? (
+                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 border border-green-200 dark:border-green-800">
+                          <FaCheckCircle size={14} />
+                          <span className="text-xs font-medium">Activo</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400 border border-gray-200 dark:border-gray-800">
+                          <FaPowerOff size={14} />
+                          <span className="text-xs font-medium">Inactivo</span>
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-right">
                     <button
-                      onClick={() => confirmDeleteUser(user)}
+                      onClick={() => confirmToggleUser(user)}
                       disabled={currentUser?.id === user.id}
                       className={`group relative p-2 rounded-lg transition-all duration-200 cursor-pointer
                         ${currentUser?.id === user.id
                           ? "text-gray-300 dark:text-[#1a1a1a] cursor-not-allowed"
-                          : "text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                          : (user.is_active ?? true) !== false
+                          ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
+                          : "text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 dark:hover:text-green-400"
                         }
                       `}
-                      title="Eliminar usuario"
+                      title={(user.is_active ?? true) !== false ? "Desactivar usuario" : "Activar usuario"}
                     >
-                      <FaTrash size={16} />
+                      <FaPowerOff size={16} />
                     </button>
                   </td>
                 </tr>
@@ -262,18 +293,20 @@ const UserManagement = () => {
       </div>
 
       <ConfirmModal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDeleteUser}
-        title="Eliminar Usuario"
+        isOpen={toggleModalOpen}
+        onClose={() => setToggleModalOpen(false)}
+        onConfirm={handleToggleUser}
+        title={(userToToggle?.is_active ?? true) !== false ? "Desactivar Usuario" : "Activar Usuario"}
         message={
           <>
             <span className="font-bold text-gray-900 dark:text-[#f5f5f5]">
-              ¿Eliminar la cuenta {userToDelete?.email}?
+              ¿{(userToToggle?.is_active ?? true) !== false ? "Desactivar" : "Activar"} la cuenta {userToToggle?.email}?
             </span>
             <br />
             <span className="text-sm mt-2 block text-gray-500 dark:text-[#a3a3a3]">
-              Esta acción es irreversible.
+              {(userToToggle?.is_active ?? true) !== false
+                ? "El usuario no podrá iniciar sesión hasta que sea reactivado."
+                : "El usuario podrá iniciar sesión nuevamente."}
             </span>
           </>
         }

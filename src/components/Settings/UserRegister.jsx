@@ -61,6 +61,7 @@ const UserRegister = ({ onSuccess }) => {
               id: authData.user.id,
               email: email,
               role: role,
+              is_active: true,
             },
           ]);
 

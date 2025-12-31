@@ -31,11 +31,17 @@ const OperativeForm = () => {
       if (authData.user) {
         const { data: userProfile, error: profileError } = await supabase
           .from("users")
-          .select("role")
+          .select("role, is_active")
           .eq("id", authData.user.id)
           .single();
 
         if (profileError) throw profileError;
+
+        if (userProfile?.is_active === false) {
+          await supabase.auth.signOut();
+          throw new Error("Acceso denegado. Tu cuenta está desactivada.");
+        }
+        // Si is_active es null o undefined, tratarlo como activo (por defecto)
 
         if (userProfile?.role !== "secretaria" && userProfile?.role !== "optometra") {
           await supabase.auth.signOut();

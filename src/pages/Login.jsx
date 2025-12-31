@@ -12,7 +12,14 @@ const Login = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return null;
+    return (
+      <div className="bg-white dark:bg-[#0a0a0a] min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600 dark:text-[#a3a3a3]">Cargando...</span>
+        </div>
+      </div>
+    );
   }
 
   if (user) {
