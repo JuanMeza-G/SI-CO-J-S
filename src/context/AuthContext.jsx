@@ -17,13 +17,17 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const adminVerificationChecked = useRef(false);
+  const initialSessionLoaded = useRef(false);
 
   useEffect(() => {
     let mounted = true;
 
     // Función para verificar rol de administrador y estado activo
     const verifyAdminRole = async (currentUser) => {
-      if (adminVerificationChecked.current) return false;
+      // Resetear el ref al inicio de cada verificación para permitir verificaciones en recargas
+      adminVerificationChecked.current = false;
+      
+      // Marcar que estamos verificando para evitar verificaciones simultáneas
       adminVerificationChecked.current = true;
 
       try {
@@ -87,8 +91,22 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
+    // Función helper para limpiar el parámetro admin_login de la URL
+    const clearAdminLoginParam = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("admin_login") === "true") {
+        urlParams.delete("admin_login");
+        const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : "");
+        window.history.replaceState({}, "", newUrl);
+      }
+    };
+
     // 1. Get initial session - SIMPLIFICADO
     const getInitialSession = async () => {
+      // Resetear el ref al inicio para permitir verificaciones en recargas
+      adminVerificationChecked.current = false;
+      initialSessionLoaded.current = false;
+      
       try {
         const {
           data: { session: initialSession },
@@ -101,6 +119,7 @@ export const AuthProvider = ({ children }) => {
             setSession(null);
             setUser(null);
             setLoading(false);
+            initialSessionLoaded.current = true;
           }
           return;
         }
@@ -112,12 +131,18 @@ export const AuthProvider = ({ children }) => {
           setSession(null);
           setUser(null);
           setLoading(false);
+          initialSessionLoaded.current = true;
           return;
         }
 
         // Verificar si viene del login de admin
         const urlParams = new URLSearchParams(window.location.search);
         const isAdminLogin = urlParams.get("admin_login") === "true";
+        
+        // Limpiar el parámetro admin_login de la URL si existe
+        if (isAdminLogin) {
+          clearAdminLoginParam();
+        }
 
         if (isAdminLogin) {
           try {
@@ -127,13 +152,18 @@ export const AuthProvider = ({ children }) => {
                 setSession(initialSession);
                 setUser(initialSession.user);
                 setLoading(false);
+                initialSessionLoaded.current = true;
               } else {
                 // verifyAdminRole ya llamó a signOut(), establecer user y session en null
-                // pero mantener loading en true hasta que SIGNED_OUT se dispare
-                // para evitar que se renderice el contenido antes de la redirección
+                // usar un timeout pequeño para establecer loading en false después de signOut
                 setSession(null);
                 setUser(null);
-                // NO establecer loading en false aquí, dejar que SIGNED_OUT lo maneje
+                setTimeout(() => {
+                  if (mounted) {
+                    setLoading(false);
+                    initialSessionLoaded.current = true;
+                  }
+                }, 100);
               }
             }
           } catch (error) {
@@ -143,6 +173,7 @@ export const AuthProvider = ({ children }) => {
               setSession(initialSession);
               setUser(initialSession.user);
               setLoading(false);
+              initialSessionLoaded.current = true;
             }
           }
         } else {
@@ -154,12 +185,18 @@ export const AuthProvider = ({ children }) => {
                 setSession(initialSession);
                 setUser(initialSession.user);
                 setLoading(false);
+                initialSessionLoaded.current = true;
               } else {
-                // verifyUserActive ya llamó a signOut(), establecer estado inmediatamente
-                // para evitar que se renderice el contenido antes de la redirección
+                // verifyUserActive ya llamó a signOut(), establecer user y session en null
+                // usar un timeout pequeño para establecer loading en false después de signOut
                 setSession(null);
                 setUser(null);
-                setLoading(false);
+                setTimeout(() => {
+                  if (mounted) {
+                    setLoading(false);
+                    initialSessionLoaded.current = true;
+                  }
+                }, 100);
               }
             }
           } catch (error) {
@@ -169,6 +206,7 @@ export const AuthProvider = ({ children }) => {
               setSession(initialSession);
               setUser(initialSession.user);
               setLoading(false);
+              initialSessionLoaded.current = true;
             }
           }
         }
@@ -178,6 +216,7 @@ export const AuthProvider = ({ children }) => {
           setSession(null);
           setUser(null);
           setLoading(false);
+          initialSessionLoaded.current = true;
         }
       }
     };
@@ -207,6 +246,12 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        // Si getInitialSession aún no ha terminado, ignorar estos eventos
+        // para evitar conflictos con la carga inicial
+        if (!initialSessionLoaded.current) {
+          return;
+        }
+        
         if (!currentSession?.user) {
           setSession(null);
           setUser(null);
@@ -216,6 +261,11 @@ export const AuthProvider = ({ children }) => {
 
         const urlParams = new URLSearchParams(window.location.search);
         const isAdminLogin = urlParams.get("admin_login") === "true";
+        
+        // Limpiar el parámetro admin_login de la URL si existe
+        if (isAdminLogin) {
+          clearAdminLoginParam();
+        }
 
         if (isAdminLogin) {
           try {
@@ -227,11 +277,14 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
               } else {
                 // verifyAdminRole ya llamó a signOut(), establecer user y session en null
-                // pero mantener loading en true hasta que SIGNED_OUT se dispare
-                // para evitar que se renderice el contenido antes de la redirección
+                // usar un timeout pequeño para establecer loading en false después de signOut
                 setSession(null);
                 setUser(null);
-                // NO establecer loading en false aquí, dejar que SIGNED_OUT lo maneje
+                setTimeout(() => {
+                  if (mounted) {
+                    setLoading(false);
+                  }
+                }, 100);
               }
             }
           } catch (error) {
@@ -246,20 +299,39 @@ export const AuthProvider = ({ children }) => {
             }
           }
         } else {
+          // Esperar un poco para que el formulario tenga tiempo de verificar primero
+          // Esto evita toasts duplicados cuando el formulario ya maneja el error
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           try {
-            const isActive = await verifyUserActive(currentSession.user);
+            // Verificar si la sesión sigue activa (el formulario podría haber hecho signOut)
+            const { data: { session: currentSessionCheck } } = await supabase.auth.getSession();
+            if (!currentSessionCheck?.user) {
+              // La sesión ya fue cerrada, probablemente por el formulario
+              if (mounted) {
+                setSession(null);
+                setUser(null);
+                setLoading(false);
+              }
+              return;
+            }
+            
+            const isActive = await verifyUserActive(currentSessionCheck.user);
             if (mounted) {
               if (isActive) {
-                setSession(currentSession);
-                setUser(currentSession.user);
+                setSession(currentSessionCheck);
+                setUser(currentSessionCheck.user);
                 setLoading(false);
               } else {
                 // verifyUserActive ya llamó a signOut(), establecer user y session en null
-                // pero mantener loading en true hasta que SIGNED_OUT se dispare
-                // para evitar que se renderice el contenido antes de la redirección
+                // usar un timeout pequeño para establecer loading en false después de signOut
                 setSession(null);
                 setUser(null);
-                // NO establecer loading en false aquí, dejar que SIGNED_OUT lo maneje
+                setTimeout(() => {
+                  if (mounted) {
+                    setLoading(false);
+                  }
+                }, 100);
               }
             }
           } catch (error) {
@@ -268,17 +340,30 @@ export const AuthProvider = ({ children }) => {
               error
             );
             if (mounted) {
-              setSession(currentSession);
-              setUser(currentSession.user);
+              const { data: { session: currentSessionCheck } } = await supabase.auth.getSession();
+              if (currentSessionCheck?.user) {
+                setSession(currentSessionCheck);
+                setUser(currentSessionCheck.user);
+              }
               setLoading(false);
             }
           }
         }
       } else {
-        // Para otros eventos
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setLoading(false);
+        // Para otros eventos (como INITIAL_SESSION en recargas)
+        // Solo actualizar si getInitialSession ya terminó Y tenemos un usuario válido establecido
+        // para evitar sobrescribir un estado válido con null
+        if (initialSessionLoaded.current) {
+          if (currentSession?.user) {
+            // Solo actualizar si tenemos una sesión válida
+            setSession(currentSession);
+            setUser(currentSession.user);
+            setLoading(false);
+          }
+          // Si currentSession es null o no tiene user, NO hacer nada para preservar el estado actual
+          // Solo permitir que SIGNED_OUT maneje la limpieza del estado
+        }
+        // Si initialSessionLoaded es false, ignorar este evento y dejar que getInitialSession maneje el estado
       }
     });
 

@@ -297,6 +297,7 @@ const UserManagement = () => {
         onClose={() => setToggleModalOpen(false)}
         onConfirm={handleToggleUser}
         title={(userToToggle?.is_active ?? true) !== false ? "Desactivar Usuario" : "Activar Usuario"}
+        confirmText={(userToToggle?.is_active ?? true) !== false ? "Desactivar" : "Activar"}
         message={
           <>
             <span className="font-bold text-gray-900 dark:text-[#f5f5f5]">

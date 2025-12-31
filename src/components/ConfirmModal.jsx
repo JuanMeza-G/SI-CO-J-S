@@ -1,6 +1,6 @@
 import React from "react";
 import Modal from "./Modal";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 
 const ConfirmModal = ({
   isOpen,
@@ -11,11 +11,23 @@ const ConfirmModal = ({
   confirmText = "Eliminar",
   cancelText = "Cancelar",
 }) => {
+  const isActivate = confirmText.toLowerCase() === "activar";
+  const Icon = isActivate ? CheckCircle : AlertTriangle;
+  const iconBgColor = isActivate 
+    ? "bg-green-100 dark:bg-green-900/30" 
+    : "bg-red-100 dark:bg-red-900/30";
+  const iconColor = isActivate 
+    ? "text-green-600 dark:text-green-500" 
+    : "text-red-600 dark:text-red-500";
+  const buttonBgColor = isActivate 
+    ? "bg-green-600 hover:bg-green-700" 
+    : "bg-red-600 hover:bg-red-700";
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <div className="flex flex-col items-center text-center gap-4">
-        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-          <AlertTriangle className="text-red-600 dark:text-red-500 w-8 h-8" />
+        <div className={`w-16 h-16 ${iconBgColor} rounded-full flex items-center justify-center`}>
+          <Icon className={`${iconColor} w-8 h-8`} />
         </div>
 
         <div>
@@ -31,7 +43,7 @@ const ConfirmModal = ({
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium shadow-sm hover:shadow cursor-pointer"
+            className={`flex-1 px-4 py-2.5 ${buttonBgColor} text-white rounded-lg transition-colors font-medium shadow-sm hover:shadow cursor-pointer`}
           >
             {confirmText}
           </button>

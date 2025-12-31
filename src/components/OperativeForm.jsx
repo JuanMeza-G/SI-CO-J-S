@@ -39,7 +39,9 @@ const OperativeForm = () => {
 
         if (userProfile?.is_active === false) {
           await supabase.auth.signOut();
-          throw new Error("Acceso denegado. Tu cuenta está desactivada.");
+          // No lanzar error aquí, dejar que AuthContext maneje el toast
+          // Solo retornar para evitar mostrar el toast de éxito
+          return;
         }
         // Si is_active es null o undefined, tratarlo como activo (por defecto)
 
