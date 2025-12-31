@@ -38,13 +38,13 @@ const Sidebar = ({ activeTab, onTabChange }) => {
   const { user } = useAuth();
   const { signOut } = useAuth();
   const [userData, setUserData] = useState(null);
+  const [loadingUserData, setLoadingUserData] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const profileMenuRef = useRef(null);
   const navigate = useNavigate();
 
   const fetchUserData = async () => {
-
-
+    setLoadingUserData(true);
     try {
       if (user) {
         const { full_name, avatar_url } = user.user_metadata || {};
@@ -81,6 +81,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             role: null, // Sin rol hasta que sea asignado por un administrador
             avatar: avatar_url || null
           });
+          setLoadingUserData(false);
           return; // Salir temprano si no hay perfil
         }
         
@@ -101,15 +102,20 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           });
         }
       }
+      setLoadingUserData(false);
     } catch (error) {
       console.error("Unexpected error fetching user data:", error);
       toast.error("Error de conexión con base de datos");
+      setLoadingUserData(false);
     }
   };
 
   useEffect(() => {
     if (user) {
       fetchUserData();
+    } else {
+      setUserData(null);
+      setLoadingUserData(false);
     }
   }, [user]);
 
@@ -173,7 +179,8 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       { id: "settings", label: "Configuración", icon: FiSettings },
     ];
 
-    if (!userData?.role) return allMenuItems; // Changed from [] to allMenuItems to ensure sidebar is visible
+    // No mostrar items hasta que se cargue el rol del usuario
+    if (loadingUserData || !userData?.role) return [];
 
     const role = userData.role.toLowerCase();
 

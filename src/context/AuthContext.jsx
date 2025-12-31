@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     let mounted = true;
 
     // Función para verificar rol de administrador y estado activo
-    const verifyAdminRole = async (currentUser) => {
+    const verifyAdminRole = async (currentUser, onUnauthorized) => {
       // Resetear el ref al inicio de cada verificación para permitir verificaciones en recargas
       adminVerificationChecked.current = false;
       
@@ -38,18 +38,24 @@ export const AuthProvider = ({ children }) => {
           .single();
 
         if (profileError || !userProfile) {
+          // Establecer user/session en null ANTES de hacer signOut para evitar flash
+          if (onUnauthorized) onUnauthorized();
           await supabase.auth.signOut();
           toast.error("Acceso denegado. No tienes permisos de administrador.");
           return false;
         }
 
         if (userProfile?.is_active === false) {
+          // Establecer user/session en null ANTES de hacer signOut para evitar flash
+          if (onUnauthorized) onUnauthorized();
           await supabase.auth.signOut();
           toast.error("Acceso denegado. Tu cuenta está desactivada.");
           return false;
         }
 
         if (userProfile?.role !== "administrador") {
+          // Establecer user/session en null ANTES de hacer signOut para evitar flash
+          if (onUnauthorized) onUnauthorized();
           await supabase.auth.signOut();
           toast.error("Acceso denegado. No tienes permisos de administrador.");
           return false;
@@ -64,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Función para verificar estado activo de cualquier usuario
-    const verifyUserActive = async (currentUser) => {
+    const verifyUserActive = async (currentUser, onUnauthorized) => {
       try {
         const { data: userProfile, error: profileError } = await supabase
           .from("users")
@@ -78,6 +84,8 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (userProfile?.is_active === false) {
+          // Establecer user/session en null ANTES de hacer signOut para evitar flash
+          if (onUnauthorized) onUnauthorized();
           await supabase.auth.signOut();
           toast.error("Acceso denegado. Tu cuenta está desactivada.");
           return false;
@@ -146,7 +154,13 @@ export const AuthProvider = ({ children }) => {
 
         if (isAdminLogin) {
           try {
-            const hasPermission = await verifyAdminRole(initialSession.user);
+            const hasPermission = await verifyAdminRole(initialSession.user, () => {
+              // Callback para establecer estado antes de signOut
+              if (mounted) {
+                setSession(null);
+                setUser(null);
+              }
+            });
             if (mounted) {
               if (hasPermission) {
                 setSession(initialSession);
@@ -154,16 +168,14 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
                 initialSessionLoaded.current = true;
               } else {
-                // verifyAdminRole ya llamó a signOut(), establecer user y session en null
-                // usar un timeout pequeño para establecer loading en false después de signOut
-                setSession(null);
-                setUser(null);
+                // verifyAdminRole ya estableció user/session en null y llamó a signOut()
+                // usar un timeout para establecer loading en false después de signOut
                 setTimeout(() => {
                   if (mounted) {
                     setLoading(false);
                     initialSessionLoaded.current = true;
                   }
-                }, 100);
+                }, 300);
               }
             }
           } catch (error) {
@@ -179,7 +191,13 @@ export const AuthProvider = ({ children }) => {
         } else {
           // Para usuarios normales, verificar estado activo
           try {
-            const isActive = await verifyUserActive(initialSession.user);
+            const isActive = await verifyUserActive(initialSession.user, () => {
+              // Callback para establecer estado antes de signOut
+              if (mounted) {
+                setSession(null);
+                setUser(null);
+              }
+            });
             if (mounted) {
               if (isActive) {
                 setSession(initialSession);
@@ -187,16 +205,14 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
                 initialSessionLoaded.current = true;
               } else {
-                // verifyUserActive ya llamó a signOut(), establecer user y session en null
-                // usar un timeout pequeño para establecer loading en false después de signOut
-                setSession(null);
-                setUser(null);
+                // verifyUserActive ya estableció user/session en null y llamó a signOut()
+                // usar un timeout para establecer loading en false después de signOut
                 setTimeout(() => {
                   if (mounted) {
                     setLoading(false);
                     initialSessionLoaded.current = true;
                   }
-                }, 100);
+                }, 300);
               }
             }
           } catch (error) {
@@ -269,22 +285,26 @@ export const AuthProvider = ({ children }) => {
 
         if (isAdminLogin) {
           try {
-            const hasPermission = await verifyAdminRole(currentSession.user);
+            const hasPermission = await verifyAdminRole(currentSession.user, () => {
+              // Callback para establecer estado antes de signOut
+              if (mounted) {
+                setSession(null);
+                setUser(null);
+              }
+            });
             if (mounted) {
               if (hasPermission) {
                 setSession(currentSession);
                 setUser(currentSession.user);
                 setLoading(false);
               } else {
-                // verifyAdminRole ya llamó a signOut(), establecer user y session en null
-                // usar un timeout pequeño para establecer loading en false después de signOut
-                setSession(null);
-                setUser(null);
+                // verifyAdminRole ya estableció user/session en null y llamó a signOut()
+                // usar un timeout para establecer loading en false después de signOut
                 setTimeout(() => {
                   if (mounted) {
                     setLoading(false);
                   }
-                }, 100);
+                }, 300);
               }
             }
           } catch (error) {
@@ -316,22 +336,26 @@ export const AuthProvider = ({ children }) => {
               return;
             }
             
-            const isActive = await verifyUserActive(currentSessionCheck.user);
+            const isActive = await verifyUserActive(currentSessionCheck.user, () => {
+              // Callback para establecer estado antes de signOut
+              if (mounted) {
+                setSession(null);
+                setUser(null);
+              }
+            });
             if (mounted) {
               if (isActive) {
                 setSession(currentSessionCheck);
                 setUser(currentSessionCheck.user);
                 setLoading(false);
               } else {
-                // verifyUserActive ya llamó a signOut(), establecer user y session en null
-                // usar un timeout pequeño para establecer loading en false después de signOut
-                setSession(null);
-                setUser(null);
+                // verifyUserActive ya estableció user/session en null y llamó a signOut()
+                // usar un timeout para establecer loading en false después de signOut
                 setTimeout(() => {
                   if (mounted) {
                     setLoading(false);
                   }
-                }, 100);
+                }, 300);
               }
             }
           } catch (error) {
