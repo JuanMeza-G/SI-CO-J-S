@@ -12,17 +12,17 @@ const Loader = ({ fullScreen = false, size = "medium", text }) => {
       className={`
       ${sizeClasses[size]}
       border-blue-200 border-t-blue-600 rounded-full animate-spin
-      dark:border-zinc-700 dark:border-t-blue-500
+      dark:border-[#262626] dark:border-t-blue-500
     `}
     ></div>
   );
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
+      <div className="fixed inset-0 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
         {spinner}
         {text && (
-          <p className="text-gray-600 dark:text-gray-300 font-medium animate-pulse">
+          <p className="text-gray-600 dark:text-[#e5e5e5] font-medium animate-pulse">
             {text}
           </p>
         )}
@@ -34,7 +34,7 @@ const Loader = ({ fullScreen = false, size = "medium", text }) => {
     <div className="flex flex-col items-center justify-center gap-3 p-4">
       {spinner}
       {text && (
-        <p className="text-sm text-gray-500 dark:text-gray-400">{text}</p>
+        <p className="text-sm text-gray-500 dark:text-[#a3a3a3]">{text}</p>
       )}
     </div>
   );

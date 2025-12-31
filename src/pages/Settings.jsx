@@ -39,7 +39,7 @@ const Settings = () => {
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={() => setActiveView("menu")}
-            className="flex text-[15px] items-center gap-2 cursor-pointer text-gray-800 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:[text-shadow:0_0_1px_currentColor]"
+            className="flex text-[15px] items-center gap-2 cursor-pointer text-gray-800 dark:text-[#e5e5e5] hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:[text-shadow:0_0_1px_currentColor]"
           >
             <IoArrowBackSharp /> Volver a Configuración
           </button>
@@ -103,14 +103,14 @@ const Settings = () => {
 
       <div
         onClick={() => setActiveView("userManagement")}
-        className="col-span-1 flex gap-2 items-center bg-white rounded-lg px-4 py-2 border-2 border-gray-200 dark:bg-gray-900 dark:border-gray-800 dark:text-white cursor-pointer hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+        className="col-span-1 flex gap-2 items-center bg-white rounded-lg px-4 py-2 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
       >
         <div className="flex justify-center items-center w-24">
           <FcConferenceCall className="text-8xl" />
         </div>
         <div className="grid">
           <span className="font-bold">Gestionar usuarios</span>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-[#a3a3a3]">
             Administrar roles y usuarios
           </span>
         </div>
@@ -118,14 +118,14 @@ const Settings = () => {
 
       <div
         onClick={() => setActiveView("clinicInfo")}
-        className="col-span-1 flex gap-2 items-center bg-white rounded-lg px-4 py-2 border-2 border-gray-200 dark:bg-gray-900 dark:border-gray-800 dark:text-white cursor-pointer hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+        className="col-span-1 flex gap-2 items-center bg-white rounded-lg px-4 py-2 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
       >
         <div className="flex justify-center items-center w-24">
           <FcDepartment className="text-8xl" />
         </div>
         <div className="grid">
           <span className="font-bold">Info. del centro óptico</span>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-[#a3a3a3]">
             Datos generales y horarios/días de atención
           </span>
         </div>
@@ -133,28 +133,28 @@ const Settings = () => {
 
       <div
         onClick={() => setActiveView("services")}
-        className="col-span-1 flex gap-2 items-center bg-white rounded-lg px-4 py-2 border-2 border-gray-200 dark:bg-gray-900 dark:border-gray-800 dark:text-white cursor-pointer hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
+        className="col-span-1 flex gap-2 items-center bg-white rounded-lg px-4 py-2 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
       >
         <div className="flex justify-center items-center w-24">
           <FcTodoList className="text-8xl" />
         </div>
         <div className="grid">
           <span className="font-bold">Servicios</span>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-[#a3a3a3]">
             Catálogo de servicios y precios de consulta
           </span>
         </div>
       </div>
 
       <div
-        className="col-span-1 flex gap-2 items-center bg-gray-50 rounded-lg px-4 py-2 border-2 border-gray-100 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-500 cursor-not-allowed opacity-70 grayscale transition-colors"
+        className="col-span-1 flex gap-2 items-center bg-gray-50 rounded-lg px-4 py-2 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
         onClick={() => toast.info("Próximamente")}
       >
         <div className="flex justify-center items-center w-24">
           <FcSms className="text-8xl opacity-50" />
         </div>
         <div className="grid">
-          <span className="font-bold text-gray-500 dark:text-gray-500">
+          <span className="font-bold text-gray-500 dark:text-[#a3a3a3]">
             Notificaciones
           </span>
           <span className="text-sm text-gray-400">
@@ -164,14 +164,14 @@ const Settings = () => {
       </div>
 
       <div
-        className="col-span-1 flex gap-2 items-center bg-gray-50 rounded-lg px-4 py-2 border-2 border-gray-100 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-500 cursor-not-allowed opacity-70 grayscale transition-colors"
+        className="col-span-1 flex gap-2 items-center bg-gray-50 rounded-lg px-4 py-2 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
         onClick={() => toast.info("Próximamente")}
       >
         <div className="flex justify-center items-center w-24">
           <FcLock className="text-8xl opacity-50" />
         </div>
         <div className="grid">
-          <span className="font-bold text-gray-500 dark:text-gray-500">
+          <span className="font-bold text-gray-500 dark:text-[#a3a3a3]">
             Roles y Permisos
           </span>
           <span className="text-sm text-gray-400">
@@ -181,14 +181,14 @@ const Settings = () => {
       </div>
 
       <div
-        className="col-span-1 flex gap-2 items-center bg-gray-50 rounded-lg px-4 py-2 border-2 border-gray-100 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-500 cursor-not-allowed opacity-70 grayscale transition-colors"
+        className="col-span-1 flex gap-2 items-center bg-gray-50 rounded-lg px-4 py-2 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
         onClick={() => toast.info("Próximamente")}
       >
         <div className="flex justify-center items-center w-24">
           <FcBinoculars className="text-8xl opacity-50" />
         </div>
         <div className="grid">
-          <span className="font-bold text-gray-500 dark:text-gray-500">
+          <span className="font-bold text-gray-500 dark:text-[#a3a3a3]">
             Auditoría
           </span>
           <span className="text-sm text-gray-400">
@@ -198,14 +198,14 @@ const Settings = () => {
       </div>
 
       <div
-        className="col-span-1 flex gap-2 items-center bg-gray-50 rounded-lg px-4 py-2 border-2 border-gray-100 dark:bg-gray-800/50 dark:border-gray-800 dark:text-gray-500 cursor-not-allowed opacity-70 grayscale transition-colors"
+        className="col-span-1 flex gap-2 items-center bg-gray-50 rounded-lg px-4 py-2 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
         onClick={() => toast.info("Próximamente")}
       >
         <div className="flex justify-center items-center w-24">
           <FcDataBackup className="text-8xl opacity-50" />
         </div>
         <div className="grid">
-          <span className="font-bold text-gray-500 dark:text-gray-500">
+          <span className="font-bold text-gray-500 dark:text-[#a3a3a3]">
             Respaldos
           </span>
           <span className="text-sm text-gray-400">

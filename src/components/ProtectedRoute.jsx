@@ -15,7 +15,11 @@ const ProtectedRoute = () => {
   }, []);
 
   if (loading || minLoading) {
-    return <Loader fullScreen text="Cargando sesión..." />;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-white dark:bg-[#0a0a0a]">
+        <Loader text="Cargando sesión..." />
+      </div>
+    );
   }
 
   if (!user) {

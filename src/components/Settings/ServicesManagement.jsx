@@ -138,9 +138,9 @@ const ServicesManagement = forwardRef((props, ref) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="overflow-hidden bg-white dark:bg-gray-900 rounded-lg border-2 border-gray-200 dark:border-gray-800">
-        <table className="w-full text-left text-gray-500 dark:text-gray-400">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-800/50 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+      <div className="overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
+        <table className="w-full text-left text-gray-500 dark:text-[#a3a3a3]">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-[#1a1a1a] dark:text-[#a3a3a3] border-b border-gray-200 dark:border-[#262626]">
             <tr>
               <th scope="col" className="px-6 py-3 font-semibold">
                 Nombre
@@ -159,15 +159,15 @@ const ServicesManagement = forwardRef((props, ref) => {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+          <tbody className="divide-y divide-gray-200 dark:divide-[#262626]">
             {services.length === 0 ? (
               <tr>
                 <td
                   colSpan="5"
-                  className="px-6 py-8 text-center text-gray-500 dark:text-gray-400"
+                  className="px-6 py-8 text-center text-gray-500 dark:text-[#a3a3a3]"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <FaGlasses className="text-4xl text-gray-300 dark:text-gray-600" />
+                    <FaGlasses className="text-4xl text-gray-300 dark:text-[#1a1a1a]" />
                     <p>No hay servicios registrados</p>
                   </div>
                 </td>
@@ -176,17 +176,17 @@ const ServicesManagement = forwardRef((props, ref) => {
               services.map((service) => (
                 <tr
                   key={service.id}
-                  className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-150"
+                  className="bg-white dark:bg-[#111111] hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150"
                 >
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-[#f5f5f5]">
                     {service.name}
                   </td>
                   <td
-                    className="px-6 py-4 max-w-xs truncate text-gray-600 dark:text-gray-300"
+                    className="px-6 py-4 max-w-xs truncate text-gray-600 dark:text-[#e5e5e5]"
                     title={service.description}
                   >
                     {service.description || (
-                      <span className="text-gray-400 italic">
+                      <span className="text-gray-400 dark:text-[#a3a3a3] italic">
                         Sin descripción
                       </span>
                     )}
@@ -198,7 +198,7 @@ const ServicesManagement = forwardRef((props, ref) => {
                       minimumFractionDigits: 0,
                     }).format(service.price)}
                   </td>
-                  <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 text-gray-500 dark:text-[#a3a3a3]">
                     {service.duration_minutes} min
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -233,7 +233,7 @@ const ServicesManagement = forwardRef((props, ref) => {
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-[#e5e5e5]">
               Nombre del Servicio
             </label>
             <input
@@ -241,7 +241,7 @@ const ServicesManagement = forwardRef((props, ref) => {
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none ${
                 errors.name
                   ? "border-red-500 focus:ring-red-500 bg-red-50"
-                  : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                  : "border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
               }`}
               placeholder="Ej: Consulta de Optometría"
             />
@@ -252,19 +252,19 @@ const ServicesManagement = forwardRef((props, ref) => {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-[#e5e5e5]">
               Descripción
             </label>
             <textarea
               rows="3"
               {...register("description")}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
               placeholder="Ej: Examen completo de refracción y salud ocular..."
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-[#e5e5e5]">
                 Precio
               </label>
               <input
@@ -274,12 +274,12 @@ const ServicesManagement = forwardRef((props, ref) => {
                   required: "El precio es obligatorio",
                   min: { value: 0, message: "Positivo" },
                 })}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
                 placeholder="0.00"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-[#e5e5e5]">
                 Duración (min)
               </label>
               <input
@@ -288,7 +288,7 @@ const ServicesManagement = forwardRef((props, ref) => {
                   required: "Duración obligatoria",
                   min: { value: 1, message: "Mínimo 1" },
                 })}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
                 placeholder="30"
               />
             </div>
@@ -309,11 +309,11 @@ const ServicesManagement = forwardRef((props, ref) => {
         title="Eliminar Servicio"
         message={
           <>
-            <span className="font-bold text-gray-900 dark:text-white">
+            <span className="font-bold text-gray-900 dark:text-[#f5f5f5]">
               ¿Eliminar el servicio {serviceToDelete?.name}?
             </span>
             <br />
-            <span className="text-sm mt-2 block text-gray-500">
+            <span className="text-sm mt-2 block text-gray-500 dark:text-[#a3a3a3]">
               Esta acción es irreversible.
             </span>
           </>

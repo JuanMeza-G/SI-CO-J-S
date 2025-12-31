@@ -139,67 +139,67 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Datos Generales - Columna izquierda */}
             <div className="lg:w-1/2">
-              <h3 className="text-[17px] font-semibold text-gray-800 dark:text-gray-200 pb-4">
+              <h3 className="text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5] pb-4">
                 Datos Generales
               </h3>
-              <div className="space-y-4 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <div className="space-y-4 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#262626] rounded-lg p-4">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Nombre del Centro
                   </label>
                   <input
                     type="text"
                     {...register("name")}
-                    className="w-full text-sm px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full text-sm px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ej: Centro Óptico Visual"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Eslogan / Subtítulo
                   </label>
                   <input
                     type="text"
                     {...register("slogan")}
-                    className="w-full text-sm px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full text-sm px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ej: Tu visión, nuestro compromiso"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Dirección
                   </label>
                   <input
                     type="text"
                     {...register("address")}
-                    className="w-full px-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Dirección completa"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                       Teléfono
                     </label>
                     <input
                       type="tel"
                       {...register("phone")}
-                      className="w-full px-4 py-2 border text-sm rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border text-sm rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
                       placeholder="+57 300 123 4567"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                       Correo Electrónico
                     </label>
                     <input
                       type="email"
                       {...register("email")}
-                      className="w-full px-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
                       placeholder="contacto@optica.com"
                     />
                   </div>
@@ -210,17 +210,17 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
             {/* Horarios de Atención - Columna derecha */}
             <div className="lg:w-1/2">
               <div className="space-y-4">
-                <h3 className="text-[17px] font-semibold text-gray-800 dark:text-gray-200">
+                <h3 className="text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5]">
                   Horarios de Atención
                 </h3>
-                <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#262626] rounded-lg p-4">
                   <div className="space-y-3">
                     {Object.entries(daysMap).map(([key, label]) => (
                       <div
                         key={key}
                         className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3 py-2.5 rounded-md border transition-colors ${schedule[key]?.enabled
-                          ? "bg-gray-50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700"
-                          : "bg-gray-50/50 dark:bg-gray-800/20 border-gray-100 dark:border-gray-800"
+                          ? "bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-[#262626]"
+                          : "bg-gray-50/50 dark:bg-[#111111] border-gray-100 dark:border-[#1a1a1a]"
                           }`}
                       >
                         <div className="flex items-center gap-3">
@@ -234,12 +234,12 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                                 e.target.checked
                               )
                             }
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-[#1a1a1a] dark:border-[#262626] cursor-pointer"
                           />
                           <span
                             className={`text-sm font-medium ${schedule[key]?.enabled
-                              ? "text-gray-800 dark:text-gray-200"
-                              : "text-gray-500 dark:text-gray-400"
+                              ? "text-gray-800 dark:text-[#e5e5e5]"
+                              : "text-gray-500 dark:text-[#a3a3a3]"
                               }`}
                           >
                             {label}
@@ -258,9 +258,9 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                                   e.target.value
                                 )
                               }
-                              className="px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white focus:ring-1 focus:ring-blue-500 outline-none w-30"
+                              className="px-2 py-1.5 text-sm border border-gray-300 dark:border-[#262626] rounded bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-1 focus:ring-blue-500 outline-none w-30"
                             />
-                            <span className="text-gray-400 dark:text-gray-500 text-sm">
+                            <span className="text-gray-400 dark:text-[#a3a3a3] text-sm">
                               a
                             </span>
                             <input
@@ -269,11 +269,11 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                               onChange={(e) =>
                                 handleScheduleChange(key, "end", e.target.value)
                               }
-                              className="px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white focus:ring-1 focus:ring-blue-500 outline-none w-30"
+                              className="px-2 py-1.5 text-sm border border-gray-300 dark:border-[#262626] rounded bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-1 focus:ring-blue-500 outline-none w-30"
                             />
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-400 dark:text-gray-500 italic">
+                          <span className="text-sm text-gray-400 dark:text-[#a3a3a3] italic">
                             Cerrado
                           </span>
                         )}

@@ -20,7 +20,7 @@ const Login = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 min-h-screen flex flex-col transition-colors duration-200">
+    <div className="bg-white dark:bg-[#0a0a0a] min-h-screen flex flex-col px-4 transition-colors duration-200">
       <div className="flex-1 flex flex-col justify-center items-center gap-8 py-8">
         <div className="grid items-center">
           <div className="flex flex-col items-center text-center gap-2">
@@ -31,36 +31,36 @@ const Login = () => {
             />
 
             <div className="grid">
-              <span className="font-semibold text-gray-900 dark:text-white">CENTRO ÓPTICO J&S</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">Sistema de gestión</span>
+              <span className="font-semibold text-gray-900 dark:text-[#f5f5f5]">CENTRO ÓPTICO J&S</span>
+              <span className="text-sm text-gray-500 dark:text-[#a3a3a3]">Sistema de gestión</span>
             </div>
           </div>
         </div>
 
         {!selectedRole && (
           <div className="text-center mt-6">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">Seleccione tu rol</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-[#f5f5f5]">Seleccione tu rol</span>
             <div className="mt-4 flex flex-col gap-4">
               <button
                 onClick={() => setSelectedRole("admin")}
-                className="flex items-center p-4 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 hover:ring-blue-600 dark:hover:ring-blue-500 hover:ring-2 transition cursor-pointer gap-4"
+                className="flex items-center p-4 rounded-lg border border-gray-300 dark:border-[#262626] bg-white dark:bg-[#111111] hover:border-blue-500 dark:hover:border-blue-500 hover:ring-blue-600 dark:hover:ring-blue-500 hover:ring-2 transition cursor-pointer gap-4"
               >
                 <FcManager className="text-6xl" />
                 <div className="grid text-left">
-                  <span className="font-bold text-[18px] text-gray-900 dark:text-white">Administrador</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-bold text-[18px] text-gray-900 dark:text-[#f5f5f5]">Administrador</span>
+                  <span className="text-sm text-gray-600 dark:text-[#a3a3a3]">
                     Configuración del sistema y gestión de usuarios
                   </span>
                 </div>
               </button>
               <button
                 onClick={() => setSelectedRole("operative")}
-                className="flex items-center p-4 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-green-500 dark:hover:border-green-500 hover:ring-green-600 dark:hover:ring-green-500 hover:ring-2 transition cursor-pointer gap-4"
+                className="flex items-center p-4 rounded-lg border border-gray-300 dark:border-[#262626] bg-white dark:bg-[#111111] hover:border-green-500 dark:hover:border-green-500 hover:ring-green-600 dark:hover:ring-green-500 hover:ring-2 transition cursor-pointer gap-4"
               >
                 <FcSettings className="text-6xl" />
                 <div className="grid text-left">
-                  <span className="font-bold text-[18px] text-gray-900 dark:text-white">Operativo</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-bold text-[18px] text-gray-900 dark:text-[#f5f5f5]">Operativo</span>
+                  <span className="text-sm text-gray-600 dark:text-[#a3a3a3]">
                     Gestión diaria y operaciones del sistema (secretaria /
                     optometra)
                   </span>
@@ -73,7 +73,7 @@ const Login = () => {
           <div className="">
             <div
               onClick={() => setSelectedRole("")}
-              className="text-2xl font-bold mb-4 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 text-gray-600 dark:text-gray-400 transition-colors"
+              className="text-2xl font-bold mb-4 cursor-pointer hover:text-gray-800 dark:hover:text-[#e5e5e5] text-gray-600 dark:text-[#a3a3a3] transition-colors"
             >
               <div className="flex items-center gap-2 text-base mb-8">
                 <MdOutlineKeyboardBackspace className="text-xl" />
@@ -81,8 +81,8 @@ const Login = () => {
               </div>
 
               <span className="grid text-center">
-                <span className="text-gray-900 dark:text-white">Administrador</span>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-gray-900 dark:text-[#f5f5f5]">Administrador</span>
+                <p className="text-sm text-gray-500 dark:text-[#a3a3a3]">
                   Ingresa con tus credenciales
                 </p>
               </span>
@@ -94,7 +94,7 @@ const Login = () => {
           <div className="">
             <div
               onClick={() => setSelectedRole("")}
-              className="text-2xl font-bold mb-4 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 text-gray-600 dark:text-gray-400 transition-colors"
+              className="text-2xl font-bold mb-4 cursor-pointer hover:text-gray-800 dark:hover:text-[#e5e5e5] text-gray-600 dark:text-[#a3a3a3] transition-colors"
             >
               <div className="flex items-center gap-2 mb-8 text-base">
                 <MdOutlineKeyboardBackspace className="text-xl" />
@@ -102,8 +102,8 @@ const Login = () => {
               </div>
 
               <span className="grid text-center my-4">
-                <span className="text-gray-900 dark:text-white">Operativo</span>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-gray-900 dark:text-[#f5f5f5]">Operativo</span>
+                <p className="text-sm text-gray-500 dark:text-[#a3a3a3]">
                   Ingresa con tus credenciales
                 </p>
               </span>
@@ -113,7 +113,7 @@ const Login = () => {
         )}
       </div>
 
-      <footer className="w-full border-t border-gray-200 dark:border-gray-800 py-4 text-center text-sm text-gray-500 dark:text-gray-400 transition-colors">
+      <footer className="w-full border-t border-gray-200 dark:border-[#262626] py-4 text-center text-sm text-gray-500 dark:text-[#a3a3a3] transition-colors">
         © {new Date().getFullYear()} Centro Óptico J&S · Todos los derechos
         reservados
       </footer>

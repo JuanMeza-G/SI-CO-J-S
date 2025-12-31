@@ -6,3 +6,70 @@
 * {
     font-family: 'Poppins', sans-serif;
 }
+
+/* Variables CSS para modo oscuro sofisticado (estilo Vercel/Supabase) */
+:root {
+    /* Colores de modo oscuro - estilo Vercel/Supabase */
+    --dark-bg-primary: #0a0a0a;
+    --dark-bg-secondary: #111111;
+    --dark-bg-tertiary: #1a1a1a;
+    --dark-bg-elevated: #1e1e1e;
+    --dark-border: #262626;
+    --dark-border-subtle: #2a2a2a;
+    --dark-text-primary: #f5f5f5;
+    --dark-text-secondary: #e5e5e5;
+    --dark-text-tertiary: #a3a3a3;
+    --dark-hover: #1f1f1f;
+    --dark-hover-subtle: #242424;
+}
+
+/* Aplicar colores de modo oscuro cuando la clase .dark está presente */
+.dark {
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+}
+
+/* Utilidades personalizadas para modo oscuro */
+.dark .bg-dark-primary {
+    background-color: var(--dark-bg-primary);
+}
+
+.dark .bg-dark-secondary {
+    background-color: var(--dark-bg-secondary);
+}
+
+.dark .bg-dark-tertiary {
+    background-color: var(--dark-bg-tertiary);
+}
+
+.dark .bg-dark-elevated {
+    background-color: var(--dark-bg-elevated);
+}
+
+.dark .border-dark {
+    border-color: var(--dark-border);
+}
+
+.dark .border-dark-subtle {
+    border-color: var(--dark-border-subtle);
+}
+
+.dark .text-dark-primary {
+    color: var(--dark-text-primary);
+}
+
+.dark .text-dark-secondary {
+    color: var(--dark-text-secondary);
+}
+
+.dark .text-dark-tertiary {
+    color: var(--dark-text-tertiary);
+}
+
+.dark .hover\:bg-dark-hover:hover {
+    background-color: var(--dark-hover);
+}
+
+.dark .hover\:bg-dark-hover-subtle:hover {
+    background-color: var(--dark-hover-subtle);
+}

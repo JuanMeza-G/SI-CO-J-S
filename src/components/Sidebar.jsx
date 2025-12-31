@@ -63,42 +63,32 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           }
         }
 
-        // Caso 1: No existe perfil -> Creamos uno nuevo con rol admin
+        // Caso 1: No existe perfil -> NO creamos automáticamente
+        // Los perfiles deben ser creados manualmente por un administrador
         if (!profile && !fetchError) {
           const provider = user.app_metadata.provider ||
             user.identities?.find(i => i.provider === 'google')?.provider ||
             'email';
 
-          const newProfile = {
-            id: user.id,
+          // Solo mostramos un mensaje informativo, no creamos el perfil automáticamente
+          console.warn("Usuario sin perfil en la base de datos. Debe ser registrado por un administrador.");
+          
+          // Si el usuario no tiene perfil, no podemos establecer userData
+          // Esto evitará que acceda a funcionalidades que requieren rol
+          setUserData({
             email: user.email,
-            role: "administrador",
-            full_name: full_name || user.email.split("@")[0],
-            avatar_url: avatar_url || null,
-            provider: provider
-          };
-
-          const { error: insertError } = await supabase
-            .from("users")
-            .insert(newProfile);
-
-          if (!insertError) {
-            profile = newProfile;
-            console.log("Nuevo usuario administrador creado desde Google");
-            toast.success("Perfil creado exitosamente");
-          } else {
-            console.error("Error creando perfil:", insertError);
-          }
+            displayName: full_name || user.email.split("@")[0],
+            role: null, // Sin rol hasta que sea asignado por un administrador
+            avatar: avatar_url || null
+          });
+          return; // Salir temprano si no hay perfil
         }
+        
         // Caso 2: Existe perfil pero no tiene rol
-        else if (profile && !profile.role) {
-          // ... logic to update role ...
-          const { error: updateError } = await supabase
-            .from("users")
-            .update({ role: "administrador" })
-            .eq("id", user.id);
-
-          if (!updateError) profile.role = "administrador";
+        // NO asignamos automáticamente rol de administrador
+        if (profile && !profile.role) {
+          console.warn("Usuario sin rol asignado. Debe ser asignado por un administrador.");
+          // No actualizamos el rol automáticamente
         }
 
         // Update with definitive data from DB
@@ -205,7 +195,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
     <>
       <aside
         className={`${open ? "w-64" : "w-20"
-          } bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-screen p-4 flex flex-col transition-all duration-300 sticky top-0 z-50 border-r-2 border-gray-200 dark:border-gray-800`}
+          } bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-[#f5f5f5] h-screen p-4 flex flex-col transition-all duration-300 sticky top-0 z-50 border-r-2 border-gray-200 dark:border-[#262626]`}
       >
         <header
           className={`flex items-center ${open ? "justify-between" : "justify-center"
@@ -219,7 +209,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 </div>
                 <div>
                   <h2 className="font-bold text-[16px]">SI-CO J&S</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500 dark:text-[#a3a3a3]">
                     Sistema de gestión
                   </p>
                 </div>
@@ -227,7 +217,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             )}
           </div>
           <button
-            className="cursor-pointer px-3 py-2 text-lg rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-300"
+            className="cursor-pointer px-3 py-2 text-lg rounded-lg hover:bg-gray-100 dark:hover:bg-[#1f1f1f] transition-colors dark:text-[#e5e5e5]"
             onClick={() => setOpen(!open)}
           >
             {open ? <BsLayoutSidebarInsetReverse /> : <BsLayoutSidebarInset />}
@@ -244,9 +234,9 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 <li key={item.id} className="relative group">
                   <button
                     onClick={() => onTabChange(item.id)}
-                    className={`hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 dark:hover:text-blue-400 px-3 py-2 rounded-lg cursor-pointer flex items-center transition-all duration-200 ${open ? "gap-3" : "justify-center"
+                    className={`hover:bg-blue-50 dark:hover:bg-[#1f1f1f] hover:text-blue-500 dark:hover:text-blue-400 px-3 py-2 rounded-lg cursor-pointer flex items-center transition-all duration-200 ${open ? "gap-3" : "justify-center"
                       } ${isActive
-                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400"
+                        ? "bg-blue-50 dark:bg-[#1a1a1a] text-blue-500 dark:text-blue-400"
                         : ""
                       } w-full`}
                   >
@@ -265,10 +255,10 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                     )}
 
                     {!open && (
-                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-[#1e1e1e] dark:border dark:border-[#262626] text-white text-sm rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
                         {item.label}
                         <div className="absolute right-full top-1/2 transform -translate-y-1/2">
-                          <div className="border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></div>
+                          <div className="border-4 border-transparent border-r-gray-900 dark:border-r-[#1e1e1e]"></div>
                         </div>
                       </div>
                     )}
@@ -283,7 +273,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           {open ? (
             <div className="relative" ref={profileMenuRef}>
               <button
-                className={`flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 gap-3 cursor-pointer transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700 w-full ${profileMenuOpen ? "bg-gray-100 dark:bg-gray-700" : ""
+                className={`flex items-center bg-gray-100 dark:bg-[#111111] rounded-lg px-3 py-2 gap-3 cursor-pointer transition-all duration-200 hover:bg-gray-100 dark:hover:bg-[#1f1f1f] w-full ${profileMenuOpen ? "bg-gray-100 dark:bg-[#1f1f1f]" : ""
                   }`}
                 onClick={handleProfileClick}
               >
@@ -297,46 +287,46 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 </div>
                 <div className="flex-1 min-w-0 text-left">
                   <p className="font-medium text-[15px] truncate">{userData?.displayName || "Cargando..."}</p>
-                  <p className="text-[12px] text-gray-500 dark:text-gray-400 truncate capitalize">
+                  <p className="text-[12px] text-gray-500 dark:text-[#a3a3a3] truncate capitalize">
                     {userData?.role || "..."}
                   </p>
                 </div>
 
                 {open && (
                   <FiChevronRight
-                    className={`transition-transform duration-200 text-gray-500 dark:text-gray-400 ${profileMenuOpen ? "rotate-90" : ""
+                    className={`transition-transform duration-200 text-gray-500 dark:text-[#a3a3a3] ${profileMenuOpen ? "rotate-90" : ""
                       }`}
                   />
                 )}
               </button>
 
-              {profileMenuOpen && (
-                <div className="absolute bottom-0 left-full ml-2 bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden z-20 min-w-60 shadow-xl">
-                  <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700">
+                  {profileMenuOpen && (
+                <div className="absolute bottom-0 left-full ml-2 bg-white dark:bg-[#1e1e1e] rounded-lg border-2 border-gray-200 dark:border-[#262626] overflow-hidden z-20 min-w-60 shadow-xl">
+                  <div className="px-3 py-2 border-b border-gray-200 dark:border-[#262626] bg-gray-100 dark:bg-[#1a1a1a]">
                     <div className="flex items-center gap-3">
                       <AvatarDisplay avatarUrl={userData?.avatar} size="w-10 h-10" iconSize={24} />
                       <div>
-                        <p className="font-medium dark:text-white">
+                        <p className="font-medium dark:text-[#f5f5f5]">
                           {userData?.displayName || "Cargando..."}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                        <p className="text-sm text-gray-500 dark:text-[#a3a3a3] capitalize">
                           {userData?.role || "..."}
                         </p>
                       </div>
                     </div>
                   </div>
                   <button
-                    className="flex items-center gap-3 py-2 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full text-left"
+                    className="flex items-center gap-3 py-2 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#242424] transition-colors w-full text-left"
                     onClick={handleEditProfile}
                   >
-                    <FaUserEdit className="text-gray-600 dark:text-gray-400" />
-                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                    <FaUserEdit className="text-gray-600 dark:text-[#a3a3a3]" />
+                    <span className="font-medium text-gray-700 dark:text-[#e5e5e5]">
                       Editar perfil
                     </span>
                   </button>
                   <div className="">
                     <button
-                      className="flex items-center gap-3 py-2 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-red-600 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-3 py-2 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#242424] transition-colors text-red-600 dark:text-red-400 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleLogout}
                       disabled={isLoggingOut}
                     >
@@ -361,42 +351,42 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 )}
 
                 {!open && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-[#1e1e1e] dark:border dark:border-[#262626] text-white text-sm rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
                     Perfil
                     <div className="absolute right-full top-1/2 transform -translate-y-1/2">
-                      <div className="border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></div>
+                      <div className="border-4 border-transparent border-r-gray-900 dark:border-r-[#1e1e1e]"></div>
                     </div>
                   </div>
                 )}
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute bottom-0 left-full ml-2 mb-2 bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden z-20 min-w-60 shadow-xl">
-                  <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700">
+                <div className="absolute bottom-0 left-full ml-2 mb-2 bg-white dark:bg-[#1e1e1e] rounded-lg border-2 border-gray-200 dark:border-[#262626] overflow-hidden z-20 min-w-60 shadow-xl">
+                  <div className="px-3 py-2 border-b border-gray-200 dark:border-[#262626] bg-gray-100 dark:bg-[#1a1a1a]">
                     <div className="flex items-center gap-3">
                       <AvatarDisplay avatarUrl={userData?.avatar} size="w-10 h-10" iconSize={24} />
                       <div>
-                        <p className="font-medium dark:text-white">
+                        <p className="font-medium dark:text-[#f5f5f5]">
                           {userData?.displayName || "Cargando..."}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                        <p className="text-sm text-gray-500 dark:text-[#a3a3a3] capitalize">
                           {userData?.role || "..."}
                         </p>
                       </div>
                     </div>
                   </div>
                   <button
-                    className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors w-full text-left"
+                    className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#242424] transition-colors w-full text-left"
                     onClick={handleEditProfile}
                   >
-                    <FaUserEdit className="text-gray-600 dark:text-gray-400" />
-                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                    <FaUserEdit className="text-gray-600 dark:text-[#a3a3a3]" />
+                    <span className="font-medium text-gray-700 dark:text-[#e5e5e5]">
                       Editar perfil
                     </span>
                   </button>
                   <div className="">
                     <button
-                      className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-red-600 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#242424] transition-colors text-red-600 dark:text-red-400 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleLogout}
                       disabled={isLoggingOut}
                     >
@@ -412,13 +402,13 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           {open ? (
             <div>
               <div
-                className={`flex items-center justify-between text-sm p-1 rounded-lg transition-all duration-500 cursor-pointer ${isDarkMode ? "bg-gray-800" : "bg-gray-100"
+                className={`flex items-center justify-between text-sm p-1 rounded-lg transition-all duration-500 cursor-pointer ${isDarkMode ? "bg-[#111111]" : "bg-gray-100"
                   }`}
                 onClick={toggleTheme}
               >
                 <div
                   className={`flex items-center justify-center gap-2 p-2 rounded-lg flex-1 transition-all duration-300 ${isDarkMode
-                    ? "text-gray-400"
+                    ? "text-[#a3a3a3]"
                     : "text-blue-600 bg-white shadow-sm"
                     }`}
                 >
@@ -431,7 +421,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
 
                 <div
                   className={`flex items-center justify-center gap-2 p-2 rounded-lg flex-1 transition-all duration-300 ${isDarkMode
-                    ? "text-gray-100 bg-gray-700 shadow-sm"
+                    ? "text-[#f5f5f5] bg-[#1a1a1a] shadow-sm"
                     : "text-gray-500"
                     }`}
                 >
@@ -446,7 +436,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           ) : (
             <div className="flex justify-center">
               <button
-                className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-blue-600 dark:text-gray-300 shadow-sm group relative"
+                className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer bg-gray-50 dark:bg-[#111111] hover:bg-gray-100 dark:hover:bg-[#1f1f1f] transition-colors text-blue-600 dark:text-[#e5e5e5] shadow-sm group relative"
                 onClick={toggleTheme}
               >
                 {isDarkMode ? (
@@ -456,10 +446,10 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 )}
 
                 {!open && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-[#1e1e1e] dark:border dark:border-[#262626] text-white text-sm rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
                     {isDarkMode ? "Modo claro" : "Modo oscuro"}
                     <div className="absolute right-full top-1/2 transform -translate-y-1/2">
-                      <div className="border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></div>
+                      <div className="border-4 border-transparent border-r-gray-900 dark:border-r-[#1e1e1e]"></div>
                     </div>
                   </div>
                 )}
@@ -487,14 +477,14 @@ const AvatarDisplay = ({ avatarUrl, size = "w-12 h-12", iconSize = 24 }) => {
 
   return avatarUrl && !imgError ? (
     <img
-      className={`${size} rounded-full inline-block border-2 border-white dark:border-gray-700 object-cover`}
+      className={`${size} rounded-full inline-block border-2 border-white dark:border-[#262626] object-cover`}
       src={avatarUrl}
       alt="User Avatar"
       referrerPolicy="no-referrer"
       onError={() => setImgError(true)}
     />
   ) : (
-    <div className={`${size} rounded-full border-2 border-white dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500`}>
+    <div className={`${size} rounded-full border-2 border-white dark:border-[#262626] bg-gray-100 dark:bg-[#111111] flex items-center justify-center text-gray-400 dark:text-[#a3a3a3]`}>
       <FaUserCircle size={iconSize + 24} />
     </div>
   );

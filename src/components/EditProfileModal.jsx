@@ -12,15 +12,29 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [user, setUser] = useState(null);
+  const [initialAvatarUrl, setInitialAvatarUrl] = useState(null);
+  const [initialFullName, setInitialFullName] = useState(null);
+  const [avatarFileChanged, setAvatarFileChanged] = useState(false);
 
   const { register, handleSubmit, setValue, reset, watch } = useForm();
   const newPassword = watch("newPassword");
+  const fullName = watch("full_name");
 
   useEffect(() => {
     if (isOpen) {
       loadUserData();
+    } else {
+      // Reset password fields and file input when modal closes
+      setValue("newPassword", "");
+      setValue("confirmPassword", "");
+      setShowPassword(false);
+      setAvatarFileChanged(false);
+      const fileInput = document.getElementById("avatar-upload");
+      if (fileInput) {
+        fileInput.value = "";
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, setValue]);
 
   const loadUserData = async () => {
     try {
@@ -41,14 +55,23 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       const metaName = user.user_metadata?.full_name;
       const metaAvatar = user.user_metadata?.avatar_url;
 
+      let finalName = "";
+      let finalAvatar = null;
+
       if (profile) {
-        setValue("full_name", profile.full_name || metaName || "");
-        setAvatarPreview(profile.avatar_url || metaAvatar);
+        finalName = profile.full_name || metaName || "";
+        finalAvatar = profile.avatar_url || metaAvatar;
       } else {
         // Fallback to metadata if no profile found
-        setValue("full_name", metaName || user.email.split("@")[0]);
-        if (metaAvatar) setAvatarPreview(metaAvatar);
+        finalName = metaName || user.email.split("@")[0];
+        finalAvatar = metaAvatar || null;
       }
+
+      setValue("full_name", finalName);
+      setAvatarPreview(finalAvatar);
+      setInitialFullName(finalName);
+      setInitialAvatarUrl(finalAvatar);
+      setAvatarFileChanged(false);
     } catch (error) {
       console.error("Error loading user data:", error);
     } finally {
@@ -59,6 +82,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setAvatarFileChanged(true);
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result);
@@ -127,6 +151,14 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       if (error) throw error;
 
       toast.success("Perfil actualizado correctamente");
+      // Update initial values after successful save
+      setInitialFullName(data.full_name);
+      setInitialAvatarUrl(avatarUrl);
+      setAvatarFileChanged(false);
+      // Reset password fields after successful save
+      setValue("newPassword", "");
+      setValue("confirmPassword", "");
+      setShowPassword(false);
       if (onProfileUpdate) onProfileUpdate();
       onClose();
     } catch (error) {
@@ -136,6 +168,17 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       setLoading(false);
     }
   };
+
+  // Check if there are any changes
+  const hasChanges = () => {
+    const nameChanged = fullName !== initialFullName;
+    const avatarChanged = avatarFileChanged;
+    const passwordChanged = newPassword && newPassword.length > 0;
+    
+    return nameChanged || avatarChanged || passwordChanged;
+  };
+
+  const isFormDirty = hasChanges();
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Editar Perfil">
@@ -147,7 +190,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <div className="flex justify-center">
             <div className="relative group">
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-100 dark:border-zinc-800">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-100 dark:border-[#262626]">
                 {avatarPreview ? (
                   <img
                     src={avatarPreview}
@@ -155,7 +198,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-400">
+                  <div className="w-full h-full bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center text-gray-400 dark:text-[#a3a3a3]">
                     <FaUser className="text-3xl" />
                   </div>
                 )}
@@ -177,57 +220,57 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
               Nombre Completo
             </label>
             <input
               type="text"
               placeholder="Tu nombre completo"
               {...register("full_name")}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-zinc-800 dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-[#262626] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5]"
             />
           </div>
 
-          <div className="border-t border-gray-100 dark:border-zinc-800 pt-4">
+          <div className="border-t border-gray-100 dark:border-[#262626] pt-4">
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="w-full cursor-pointer flex items-center justify-between text-left p-2 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-lg transition-colors group"
+              className="w-full cursor-pointer flex items-center justify-between text-left p-2 hover:bg-gray-50 dark:hover:bg-[#1f1f1f] rounded-lg transition-colors group"
             >
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-[#f5f5f5]">
                 <FaLock className="text-gray-400 group-hover:text-blue-500 transition-colors" />
                 Cambiar Contraseña
               </div>
               {showPassword ? (
-                <FaChevronUp className="text-xs text-gray-400" />
+                <FaChevronUp className="text-xs text-gray-400 dark:text-[#a3a3a3]" />
               ) : (
-                <FaChevronDown className="text-xs text-gray-400" />
+                <FaChevronDown className="text-xs text-gray-400 dark:text-[#a3a3a3]" />
               )}
             </button>
 
             {showPassword && (
               <div className="mt-4 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Nueva Contraseña
                   </label>
                   <input
                     type="password"
                     placeholder="Mínimo 8 caracteres"
                     {...register("newPassword")}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-zinc-800 dark:text-white"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-[#262626] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5]"
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Confirmar Contraseña
                   </label>
                   <input
                     type="password"
                     placeholder="Repite la contraseña"
                     {...register("confirmPassword")}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-zinc-800 dark:text-white"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-[#262626] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5]"
                   />
                 </div>
               </div>
@@ -236,7 +279,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !isFormDirty}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer font-medium py-2.5 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (

@@ -61,7 +61,7 @@ const OperativeForm = () => {
             placeholder="Correo electrónico"
             {...register("email")}
             autoComplete="email"
-            className={`px-4 py-2 w-90 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700
+            className={`px-4 py-2 w-90 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] dark:border-[#262626]
               ${errors.email
                 ? "border-red-500 focus:ring-red-500 dark:border-red-500"
                 : "border-gray-300 focus:ring-green-500 dark:focus:ring-green-500"
@@ -79,7 +79,7 @@ const OperativeForm = () => {
             placeholder="Contraseña"
             {...register("password")}
             autoComplete="current-password"
-            className={`px-4 py-2 w-90 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700
+            className={`px-4 py-2 w-90 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] dark:border-[#262626]
               ${errors.password
                 ? "border-red-500 focus:ring-red-500 dark:border-red-500"
                 : "border-gray-300 focus:ring-green-500 dark:focus:ring-green-500"

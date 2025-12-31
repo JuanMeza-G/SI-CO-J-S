@@ -67,7 +67,7 @@ const AdminForm = () => {
             access_type: "offline",
             prompt: "consent",
           },
-          redirectTo: window.location.origin + "/home",
+          redirectTo: `${window.location.origin}/home?admin_login=true`,
         },
       });
 
@@ -88,7 +88,7 @@ const AdminForm = () => {
             placeholder="Correo electrónico"
             {...register("email")}
             autoComplete="email"
-            className={`px-4 py-2 w-90 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700
+            className={`px-4 py-2 w-90 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] dark:border-[#262626]
               ${errors.email
                 ? "border-red-500 focus:ring-red-500 dark:border-red-500"
                 : "border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-500"
@@ -108,7 +108,7 @@ const AdminForm = () => {
             placeholder="Contraseña"
             {...register("password")}
             autoComplete="current-password"
-            className={`px-4 py-2 w-90 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700
+            className={`px-4 py-2 w-90 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] dark:border-[#262626]
               ${errors.password
                 ? "border-red-500 focus:ring-red-500 dark:border-red-500"
                 : "border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-500"
@@ -132,19 +132,19 @@ const AdminForm = () => {
       </form>
 
       <div className="flex items-center gap-2 my-6">
-        <span className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-        <span className="text-sm text-gray-400 dark:text-gray-500">o</span>
-        <span className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+        <span className="flex-1 h-px bg-gray-200 dark:bg-[#262626]" />
+        <span className="text-sm text-gray-400 dark:text-[#a3a3a3]">o</span>
+        <span className="flex-1 h-px bg-gray-200 dark:bg-[#262626]" />
       </div>
 
       <button
         type="button"
         onClick={handleGoogleLogin}
         disabled={isGoogleLoading || isSubmitting}
-        className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 cursor-pointer py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800"
+        className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-[#262626] bg-white dark:bg-[#111111] cursor-pointer py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-[#111111]"
       >
         <FcGoogle size={22} />
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
           {isGoogleLoading ? "Redirigiendo..." : "Google"}
         </span>
       </button>

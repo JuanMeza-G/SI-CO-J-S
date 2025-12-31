@@ -80,7 +80,7 @@ const UserRegister = ({ onSuccess }) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
           Correo electrónico
         </label>
         <input
@@ -91,7 +91,7 @@ const UserRegister = ({ onSuccess }) => {
           className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all
             ${errors.email
               ? "border-red-500 focus:ring-red-500 bg-red-50"
-              : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+              : "border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
             }
           `}
         />
@@ -101,7 +101,7 @@ const UserRegister = ({ onSuccess }) => {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
           Contraseña
         </label>
         <input
@@ -112,7 +112,7 @@ const UserRegister = ({ onSuccess }) => {
           className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all
             ${errors.password
               ? "border-red-500 focus:ring-red-500 bg-red-50"
-              : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+              : "border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
             }
           `}
         />
@@ -122,7 +122,7 @@ const UserRegister = ({ onSuccess }) => {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
           Rol
         </label>
         <select
@@ -130,7 +130,7 @@ const UserRegister = ({ onSuccess }) => {
           className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none
             ${errors.role
               ? "border-red-500 focus:ring-red-500 bg-red-50"
-              : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+              : "border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
             }
           `}
         >

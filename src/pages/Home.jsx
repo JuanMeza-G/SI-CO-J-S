@@ -27,7 +27,7 @@ const Home = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-white dark:bg-gray-900">
+    <div className="flex min-h-screen bg-white dark:bg-[#0a0a0a]">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="flex-1 overflow-auto">
         {renderContent()}

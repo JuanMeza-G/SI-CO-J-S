@@ -19,13 +19,13 @@ const ConfirmModal = ({
         </div>
 
         <div>
-          <p className="text-gray-600 dark:text-gray-300 px-2">{message}</p>
+          <p className="text-gray-600 dark:text-[#e5e5e5] px-2">{message}</p>
         </div>
 
         <div className="flex gap-3 w-full mt-4">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-lg transition-colors font-medium cursor-pointer"
+            className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-[#1a1a1a] dark:hover:bg-[#242424] text-gray-700 dark:text-[#e5e5e5] rounded-lg transition-colors font-medium cursor-pointer"
           >
             {cancelText}
           </button>
