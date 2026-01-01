@@ -14,6 +14,8 @@ const registerSchema = z.object({
   }),
 });
 
+
+/** Componente de formulario para registrar nuevos usuarios con roles */
 const UserRegister = ({ onSuccess }) => {
   const {
     register,
@@ -28,7 +30,7 @@ const UserRegister = ({ onSuccess }) => {
     try {
       const { email, password, role } = data;
 
-      // Create a temporary client to avoid overwriting the current session
+
       const tempSupabase = createClient(
         import.meta.env.VITE_SUPABASE_URL,
         import.meta.env.VITE_SUPABASE_ANON_KEY,
@@ -68,7 +70,7 @@ const UserRegister = ({ onSuccess }) => {
         if (dbError) throw dbError;
       }
 
-      console.log("Registered user:", authData);
+
       toast.success("Usuario registrado exitosamente");
       reset();
       if (onSuccess) onSuccess();

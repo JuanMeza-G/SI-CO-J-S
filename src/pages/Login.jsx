@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import AdminForm from "../components/AdminForm";
 import OperativeForm from "../components/OperativeForm";
 
+/** Página de inicio de sesión con selección de rol */
 const Login = () => {
   const [selectedRole, setSelectedRole] = useState("");
 

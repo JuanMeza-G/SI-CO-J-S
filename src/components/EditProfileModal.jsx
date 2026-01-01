@@ -6,6 +6,8 @@ import Modal from "./Modal";
 import { FaCamera, FaUser, FaLock, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import Loader from "./Loader";
 
+
+/** Modal para editar la información del perfil del usuario */
 const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(true);
@@ -24,7 +26,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
     if (isOpen) {
       loadUserData();
     } else {
-      // Reset password fields and file input when modal closes
+
       setValue("newPassword", "");
       setValue("confirmPassword", "");
       setShowPassword(false);
@@ -45,7 +47,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       if (!user) return;
       setUser(user);
 
-      // Fetch specific profile from DB
+
       const { data: profile, error } = await supabase
         .from("users")
         .select("full_name, avatar_url")
@@ -62,7 +64,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
         finalName = profile.full_name || metaName || "";
         finalAvatar = profile.avatar_url || metaAvatar;
       } else {
-        // Fallback to metadata if no profile found
+
         finalName = metaName || user.email.split("@")[0];
         finalAvatar = metaAvatar || null;
       }
@@ -130,7 +132,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
 
       if (error) throw error;
 
-      // Update password if provided
+
       if (data.newPassword) {
         if (data.newPassword.length < 8) {
           toast.error("La contraseña debe tener al menos 8 caracteres");
@@ -151,11 +153,11 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       if (error) throw error;
 
       toast.success("Perfil actualizado correctamente");
-      // Update initial values after successful save
+
       setInitialFullName(data.full_name);
       setInitialAvatarUrl(avatarUrl);
       setAvatarFileChanged(false);
-      // Reset password fields after successful save
+
       setValue("newPassword", "");
       setValue("confirmPassword", "");
       setShowPassword(false);
@@ -169,12 +171,12 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
     }
   };
 
-  // Check if there are any changes
+
   const hasChanges = () => {
     const nameChanged = fullName !== initialFullName;
     const avatarChanged = avatarFileChanged;
     const passwordChanged = newPassword && newPassword.length > 0;
-    
+
     return nameChanged || avatarChanged || passwordChanged;
   };
 

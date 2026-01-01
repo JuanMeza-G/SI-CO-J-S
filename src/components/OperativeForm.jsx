@@ -10,6 +10,8 @@ const operativeSchema = z.object({
   password: z.string().min(8, "La contraseña debe tener mínimo 8 caracteres"),
 });
 
+
+/** Formulario de inicio de sesión para personal operativo */
 const OperativeForm = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(operativeSchema),
@@ -39,11 +41,9 @@ const OperativeForm = () => {
 
         if (userProfile?.is_active === false) {
           await supabase.auth.signOut();
-          // No lanzar error aquí, dejar que AuthContext maneje el toast
-          // Solo retornar para evitar mostrar el toast de éxito
           return;
         }
-        // Si is_active es null o undefined, tratarlo como activo (por defecto)
+
 
         if (userProfile?.role !== "secretaria" && userProfile?.role !== "optometra") {
           await supabase.auth.signOut();

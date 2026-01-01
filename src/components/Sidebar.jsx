@@ -26,6 +26,8 @@ import {
 import EditProfileModal from "./EditProfileModal";
 import { toast } from "sonner";
 
+
+/** Barra lateral de navegación principal */
 const Sidebar = ({ activeTab, onTabChange }) => {
   const [open, setOpen] = useState(() => {
     const savedState = localStorage.getItem("sidebarOpen");
@@ -56,12 +58,11 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             .select("role, full_name, avatar_url")
             .eq("id", user.id)
             .maybeSingle()
-          // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
         );
 
         if (fetchError) {
           console.error("Error fetching user profile:", fetchError);
-          // Only show toast if it's not a connection error we can ignore casually
+
           if (!fetchError.message?.includes("fetch") && !fetchError.message?.includes("tiempo de espera")) {
             toast.error("Error cargando perfil desde base de datos");
           } else if (fetchError.message?.includes("tiempo de espera")) {
@@ -69,36 +70,28 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           }
         }
 
-        // Caso 1: No existe perfil -> NO creamos automáticamente
-        // Los perfiles deben ser creados manualmente por un administrador
         if (!profile && !fetchError) {
           const provider = user.app_metadata.provider ||
             user.identities?.find(i => i.provider === 'google')?.provider ||
             'email';
 
-          // Solo mostramos un mensaje informativo, no creamos el perfil automáticamente
+
           console.warn("Usuario sin perfil en la base de datos. Debe ser registrado por un administrador.");
 
-          // Si el usuario no tiene perfil, no podemos establecer userData
-          // Esto evitará que acceda a funcionalidades que requieren rol
           setUserData({
             email: user.email,
             displayName: full_name || user.email.split("@")[0],
-            role: null, // Sin rol hasta que sea asignado por un administrador
+            role: null,
             avatar: avatar_url || null
           });
           setLoadingUserData(false);
-          return; // Salir temprano si no hay perfil
+          return;
         }
 
-        // Caso 2: Existe perfil pero no tiene rol
-        // NO asignamos automáticamente rol de administrador
         if (profile && !profile.role) {
           console.warn("Usuario sin rol asignado. Debe ser asignado por un administrador.");
-          // No actualizamos el rol automáticamente
         }
 
-        // Update with definitive data from DB
         if (profile) {
           setUserData({
             email: user.email,
@@ -117,13 +110,13 @@ const Sidebar = ({ activeTab, onTabChange }) => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       fetchUserData();
     } else {
       setUserData(null);
       setLoadingUserData(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     localStorage.setItem("sidebarOpen", JSON.stringify(open));
@@ -164,7 +157,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
       await signOut();
     } catch (error) {
@@ -185,19 +178,17 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       { id: "settings", label: "Configuración", icon: FiSettings },
     ];
 
-    // No mostrar items hasta que se cargue el rol del usuario
+
     if (loadingUserData || !userData?.role) return [];
 
-    // Si tenemos permisos cargados en el contexto, usarlos
     if (permissions) {
       return allMenuItems.filter(item => {
-        // Verificar si el módulo existe en los permisos y si tiene permiso de visualización ('view')
         const modulePermissions = permissions[item.id];
         return modulePermissions?.view === true;
       });
     }
 
-    // Fallback a lógica antigua si no hay permisos (por si acaso)
+
     const role = userData.role.toLowerCase();
 
     if (role === 'secretaria') {
@@ -208,7 +199,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       return allMenuItems.filter(item => item.id !== 'settings');
     }
 
-    // Administrador u otros ven todo
+
     return allMenuItems;
   };
 
@@ -491,6 +482,8 @@ const Sidebar = ({ activeTab, onTabChange }) => {
   );
 };
 
+
+/** Componente auxiliar para mostrar el avatar del usuario */
 const AvatarDisplay = ({ avatarUrl, size = "w-12 h-12", iconSize = 24 }) => {
   const [imgError, setImgError] = useState(false);
 

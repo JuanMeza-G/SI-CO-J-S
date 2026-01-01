@@ -1,3 +1,4 @@
+/** Módulos del sistema y sus permisos */
 export const modules = [
     {
         id: "dashboard",
@@ -31,6 +32,7 @@ export const modules = [
     },
 ];
 
+/** Permisos por defecto para cada rol */
 export const defaultPermissions = {
     administrador: {
         dashboard: { view: true },

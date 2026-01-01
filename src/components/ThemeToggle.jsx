@@ -2,6 +2,8 @@ import React from "react";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 
+
+/** Botón para alternar entre modo claro y oscuro */
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
 

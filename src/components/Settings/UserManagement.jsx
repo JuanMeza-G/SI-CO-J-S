@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { toast } from "sonner";
-import {  
+import {
   FaUserShield,
   FaUserCircle,
   FaChevronDown,
@@ -15,6 +15,8 @@ import { useAuth } from "../../context/AuthContext";
 import ConfirmModal from "../ConfirmModal";
 import { safeQuery } from "../../utils/supabaseHelpers";
 
+
+/** Componente para gestión de usuarios y sus estados/roles */
 const UserManagement = () => {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
@@ -36,16 +38,15 @@ const UserManagement = () => {
 
       if (error) {
         toast.error(`Error cargando usuarios: ${error.message || 'Error desconocido'}`);
-        setUsers([]); // Establecer array vacío en caso de error para evitar UI bloqueada
+        setUsers([]);
         return;
       }
       setUsers(data || []);
     } catch (error) {
       console.error("Error fetching users catch block:", error);
       toast.error(error.message || "Error cargando usuarios. Por favor, intenta nuevamente.");
-      setUsers([]); // Establecer array vacío en caso de error para evitar UI bloqueada
+      setUsers([]);
     } finally {
-      // Asegurar que siempre se resetea el estado de loading
       setLoading(false);
     }
   };
@@ -80,7 +81,6 @@ const UserManagement = () => {
     if (!userToToggle) return;
 
     try {
-      // Si is_active es null o undefined, tratarlo como true (activo)
       const currentStatus = userToToggle.is_active ?? true;
       const newStatus = !currentStatus;
       const { error } = await supabase
@@ -126,7 +126,6 @@ const UserManagement = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Desktop Table View */}
       <div className="hidden md:block overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
         <table className="w-full text-left text-gray-500 dark:text-[#a3a3a3]">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-[#1a1a1a] dark:text-[#a3a3a3] border-b border-gray-200 dark:border-[#262626]">
@@ -165,9 +164,8 @@ const UserManagement = () => {
               users.map((user) => (
                 <tr
                   key={user.id}
-                  className={`bg-white dark:bg-[#111111] hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150 ${
-                    (user.is_active ?? true) === false ? "opacity-60" : ""
-                  }`}
+                  className={`bg-white dark:bg-[#111111] hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors duration-150 ${(user.is_active ?? true) === false ? "opacity-60" : ""
+                    }`}
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -285,8 +283,8 @@ const UserManagement = () => {
                         ${currentUser?.id === user.id
                           ? "text-gray-300 dark:text-[#1a1a1a] cursor-not-allowed"
                           : (user.is_active ?? true) !== false
-                          ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
-                          : "text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 dark:hover:text-green-400"
+                            ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
+                            : "text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 dark:hover:text-green-400"
                         }
                       `}
                       title={(user.is_active ?? true) !== false ? "Desactivar usuario" : "Activar usuario"}
@@ -301,7 +299,6 @@ const UserManagement = () => {
         </table>
       </div>
 
-      {/* Mobile Card View */}
       <div className="md:hidden flex flex-col gap-4">
         {users.length === 0 ? (
           <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-8">
@@ -314,12 +311,10 @@ const UserManagement = () => {
           users.map((user) => (
             <div
               key={user.id}
-              className={`bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-4 ${
-                (user.is_active ?? true) === false ? "opacity-60" : ""
-              }`}
+              className={`bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-4 ${(user.is_active ?? true) === false ? "opacity-60" : ""
+                }`}
             >
               <div className="flex flex-col gap-4">
-                {/* User Info */}
                 <div className="flex items-center gap-3">
                   {user.avatar_url ? (
                     <img
@@ -350,7 +345,6 @@ const UserManagement = () => {
                   </div>
                 </div>
 
-                {/* Role */}
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-medium text-gray-700 dark:text-[#a3a3a3]">
                     Rol
@@ -388,7 +382,6 @@ const UserManagement = () => {
                   </div>
                 </div>
 
-                {/* Provider and Status Row */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex flex-wrap gap-2">
                     {user.provider === "google" && (
@@ -437,8 +430,8 @@ const UserManagement = () => {
                         ${currentUser?.id === user.id
                           ? "text-gray-300 dark:text-[#1a1a1a] cursor-not-allowed"
                           : (user.is_active ?? true) !== false
-                          ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
-                          : "text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 dark:hover:text-green-400"
+                            ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
+                            : "text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 dark:hover:text-green-400"
                         }
                       `}
                       title={(user.is_active ?? true) !== false ? "Desactivar usuario" : "Activar usuario"}

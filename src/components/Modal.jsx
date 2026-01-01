@@ -1,6 +1,8 @@
 import React from "react";
 import { X } from "lucide-react";
 
+
+/** Componente base de Modal reutilizable */
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 

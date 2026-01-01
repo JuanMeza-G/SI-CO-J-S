@@ -1,5 +1,6 @@
 import React from 'react';
 
+/** Página de gestión de citas y calendario */
 const Appointments = () => {
     return (
         <div className="p-6">

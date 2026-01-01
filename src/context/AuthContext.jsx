@@ -4,16 +4,51 @@ import React, {
   useEffect,
   useState,
   useRef,
+  useCallback,
 } from "react";
 import { supabase } from "../supabaseClient";
 import { toast } from "sonner";
-import { safeQuery } from "../utils/supabaseHelpers";
 import { defaultPermissions, modules } from "../utils/permissions";
 
 const AuthContext = createContext({});
 
 export const useAuth = () => useContext(AuthContext);
 
+const INITIAL_SESSION_TIMEOUT = 4000;
+const PROFILE_TIMEOUT = 3000;
+const FAST_TIMEOUT = 2000;
+
+const withQuickTimeout = (promise, timeoutMs, operationName = "Operación") => {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(`${operationName} timeout (${timeoutMs}ms)`));
+    }, timeoutMs);
+
+    Promise.resolve(promise)
+      .then(resolve)
+      .catch(reject)
+      .finally(() => {
+        clearTimeout(timeoutId);
+      });
+  });
+};
+
+const quickQuery = async (
+  queryFn,
+  timeoutMs = 5000,
+  operationName = "Consulta"
+) => {
+  try {
+    return await withQuickTimeout(queryFn(), timeoutMs, operationName);
+  } catch (error) {
+    if (error.message.includes("timeout")) {
+      throw new Error("La conexión está tardando demasiado");
+    }
+    throw error;
+  }
+};
+
+/** Proveedor de contexto de autenticación */
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
@@ -21,542 +56,425 @@ export const AuthProvider = ({ children }) => {
   const [permissions, setPermissions] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const adminVerificationChecked = useRef(false);
-  const initialSessionLoaded = useRef(false);
+  const [networkStatus, setNetworkStatus] = useState(
+    navigator.onLine ? "online" : "offline"
+  );
 
-  const fetchUserPermissions = async (role) => {
+
+  const isMounted = useRef(true);
+  const initializationAttempted = useRef(false);
+  const authSubscription = useRef(null);
+
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setNetworkStatus("online");
+    };
+
+    const handleOffline = () => {
+      setNetworkStatus("offline");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+
+  const loadPermissionsFromCache = useCallback((role) => {
+    if (!role) return defaultPermissions.guest || {};
+
+    try {
+      const saved = localStorage.getItem("role_permissions");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed[role]) {
+          return parsed[role];
+        }
+      }
+
+      const oldSaved = localStorage.getItem("role_permissions_cache");
+      if (oldSaved) {
+        const parsed = JSON.parse(oldSaved);
+        if (parsed[role]) {
+          return parsed[role];
+        }
+      }
+    } catch (e) {
+      console.warn("Error parsing permissions cache:", e);
+    }
+
+    return defaultPermissions[role] || defaultPermissions.guest || {};
+  }, []);
+
+  const fetchPermissionsFromDB = useCallback(async (role) => {
     if (!role) return null;
 
     try {
-      // 1. Intentar cargar desde localStorage primero (como respaldo rápido)
-      const savedPermissions = localStorage.getItem("role_permissions");
-      let localPerms = null;
-      if (savedPermissions) {
-        try {
-          localPerms = JSON.parse(savedPermissions);
-        } catch (e) {
-          console.warn("Error parsing saved permissions", e);
-        }
-      }
+      const { data, error } = await supabase
+        .from("role_permissions")
+        .select("*");
 
-      // 2. Cargar desde BD
-      const { data: dbPerms, error } = await safeQuery(
-        () => supabase.from("role_permissions").select("*").eq("role", role),
-        30000, // 30 segundos timeout
-        0,     // Sin reintentos para fallar rápido
-        30000  // 30 segundos máximo total
-      );
+      if (error) throw error;
 
-      if (error || !dbPerms || dbPerms.length === 0) {
-        // Si falla BD, usar localStorage si coincide el rol, o defaults
-        if (localPerms && localPerms[role]) {
-          return localPerms[role];
-        }
-        return defaultPermissions[role] || {};
-      }
+      if (data && data.length > 0) {
+        const newPerms = {};
+        const uniqueRoles = [...new Set(data.map(p => p.role))];
 
-      // 3. Procesar datos de BD
-      const formattedPerms = {};
-
-      // Inicializar con la estructura de modulos vacia para el rol actual
-      modules.forEach(m => {
-        formattedPerms[m.id] = {};
-        m.permissions.forEach(p => {
-          formattedPerms[m.id][p] = false;
+        uniqueRoles.forEach(r => {
+          newPerms[r] = {};
         });
-      });
 
-      // Llenar con lo que viene de BD
-      dbPerms.forEach(p => {
-        if (!formattedPerms[p.module]) formattedPerms[p.module] = {};
-        formattedPerms[p.module][p.permission] = p.allowed;
-      });
+        data.forEach(p => {
+          if (!newPerms[p.role][p.module]) newPerms[p.role][p.module] = {};
+          newPerms[p.role][p.module][p.permission] = p.allowed;
+        });
 
-      return formattedPerms;
+        localStorage.setItem("role_permissions", JSON.stringify(newPerms));
 
-    } catch (error) {
-      console.error("Error fetching permissions:", error);
-      return defaultPermissions[role] || {};
+        return newPerms[role];
+      }
+    } catch (e) {
+      console.warn("Error fetching permissions from DB:", e);
     }
-  };
+    return null;
+  }, []);
 
-  useEffect(() => {
-    let mounted = true;
+  const fetchUserProfileQuick = useCallback(
+    async (userId) => {
+      if (!userId) return null;
 
-    const fetchProfileAndPermissions = async (userId) => {
-      try {
-        const { data: profile, error } = await safeQuery(
-          () => supabase.from("users").select("*").eq("id", userId).single(),
-          30000, // 30 segundos timeout
-          0,     // Sin reintentos para fallar rápido
-          30000  // 30 segundos máximo total
-        );
-
-        if (error || !profile) return null;
-
-        const role = profile.role;
-        const perms = await fetchUserPermissions(role);
-
-        return { profile, role, perms };
-      } catch (e) {
-        console.error("Error fetching full profile:", e);
+      if (networkStatus === "offline") {
+        const cachedProfile = localStorage.getItem("user_profile_cache");
+        if (cachedProfile) {
+          try {
+            return JSON.parse(cachedProfile);
+          } catch (e) {
+            // Ignorar error de parseo
+          }
+        }
         return null;
       }
-    };
-
-    // Función para verificar rol de administrador y estado activo
-    const verifyAdminRole = async (currentUser, onUnauthorized) => {
-      // Resetear el ref al inicio de cada verificación para permitir verificaciones en recargas
-      adminVerificationChecked.current = false;
-
-      // Marcar que estamos verificando para evitar verificaciones simultáneas
-      adminVerificationChecked.current = true;
 
       try {
-        const result = await fetchProfileAndPermissions(currentUser.id);
-        const userProfile = result?.profile;
-
-        if (!userProfile) {
-          if (onUnauthorized) onUnauthorized();
-          await supabase.auth.signOut();
-          toast.error("Acceso denegado. No tienes permisos de administrador.");
-          return false;
-        }
-
-        if (userProfile?.is_active === false) {
-          if (onUnauthorized) onUnauthorized();
-          await supabase.auth.signOut();
-          toast.error("Acceso denegado. Tu cuenta está desactivada.");
-          return false;
-        }
-
-        if (userProfile?.role !== "administrador") {
-          if (onUnauthorized) onUnauthorized();
-          await supabase.auth.signOut();
-          toast.error("Acceso denegado. No tienes permisos de administrador.");
-          return false;
-        }
-
-        if (mounted) {
-          setUserProfile(userProfile);
-          setUserRole(userProfile.role);
-          setPermissions(result.perms);
-        }
-
-        return true;
-      } catch (error) {
-        console.error("Error verifying admin role:", error);
-        return true; // Fail-safe
-      }
-    };
-
-    // Función para verificar estado activo de cualquier usuario
-    const verifyUserActive = async (currentUser, onUnauthorized) => {
-      try {
-        const result = await fetchProfileAndPermissions(currentUser.id);
-        const userProfile = result?.profile;
-
-        if (!userProfile) {
-          // Si no hay perfil, permitir acceso limitado pero no cargar permisos completos aun
-          return true;
-        }
-
-        if (userProfile?.is_active === false) {
-          if (onUnauthorized) onUnauthorized();
-          await supabase.auth.signOut();
-          toast.error("Acceso denegado. Tu cuenta está desactivada.");
-          return false;
-        }
-
-        if (mounted) {
-          setUserProfile(userProfile);
-          setUserRole(userProfile.role);
-          setPermissions(result.perms);
-        }
-
-        return true;
-      } catch (error) {
-        console.error("Error verifying user active status:", error);
-        return true;
-      }
-    };
-
-    // Función helper para limpiar el parámetro admin_login de la URL
-    const clearAdminLoginParam = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("admin_login") === "true") {
-        urlParams.delete("admin_login");
-        const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : "");
-        window.history.replaceState({}, "", newUrl);
-      }
-    };
-
-    // 1. Get initial session - SIMPLIFICADO
-    const getInitialSession = async () => {
-      // Resetear el ref al inicio para permitir verificaciones en recargas
-      adminVerificationChecked.current = false;
-      initialSessionLoaded.current = false;
-
-      try {
-        const {
-          data: { session: initialSession },
-          error,
-        } = await safeQuery(
-          () => supabase.auth.getSession(),
-          30000, // 30 segundos timeout
-          0,     // Sin reintentos para fallar rápido
-          30000  // 30 segundos máximo total
+        const result = await quickQuery(
+          () =>
+            supabase.from("users").select("*").eq("id", userId).maybeSingle(),
+          PROFILE_TIMEOUT,
+          "Cargar perfil"
         );
 
-        if (error) {
-          console.error("Error getting session:", error);
-          if (mounted) {
-            setSession(null);
-            setUser(null);
-            setLoading(false);
-            initialSessionLoaded.current = true;
-          }
-          return;
-        }
+        if (result?.error) return null;
 
-        if (!mounted) return;
-
-        // Si no hay sesión, establecer estado vacío inmediatamente
-        if (!initialSession?.user) {
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          initialSessionLoaded.current = true;
-          return;
-        }
-
-        // Verificar si viene del login de admin
-        const urlParams = new URLSearchParams(window.location.search);
-        const isAdminLogin = urlParams.get("admin_login") === "true";
-
-        // Limpiar el parámetro admin_login de la URL si existe
-        if (isAdminLogin) {
-          clearAdminLoginParam();
-        }
-
-        if (isAdminLogin) {
+        if (result?.data) {
           try {
-            const hasPermission = await verifyAdminRole(initialSession.user, () => {
-              // Callback para establecer estado antes de signOut
-              if (mounted) {
-                setSession(null);
-                setUser(null);
-                setUserProfile(null);
-                setUserRole(null);
-                setPermissions(null);
-              }
-            });
-            if (mounted) {
-              if (hasPermission) {
-                setSession(initialSession);
-                setUser(initialSession.user);
-                setLoading(false);
-                initialSessionLoaded.current = true;
-              } else {
-                // verifyAdminRole ya estableció user/session en null y llamó a signOut()
-                // usar un timeout para establecer loading en false después de signOut
-                setTimeout(() => {
-                  if (mounted) {
-                    setLoading(false);
-                    initialSessionLoaded.current = true;
-                  }
-                }, 300);
-              }
-            }
-          } catch (error) {
-            console.error("Error in admin verification:", error);
-            if (mounted) {
-              setSession(initialSession);
-              setUser(initialSession.user);
-              setLoading(false);
-              initialSessionLoaded.current = true;
-            }
-          }
-        } else {
-          // Para usuarios normales, verificar estado activo
-          try {
-            const isActive = await verifyUserActive(initialSession.user, () => {
-              // Callback para establecer estado antes de signOut
-              if (mounted) {
-                setSession(null);
-                setUser(null);
-                setUserProfile(null);
-                setUserRole(null);
-                setPermissions(null);
-              }
-            });
-            if (mounted) {
-              if (isActive) {
-                setSession(initialSession);
-                setUser(initialSession.user);
-                setLoading(false);
-                initialSessionLoaded.current = true;
-              } else {
-                // verifyUserActive ya estableció user/session en null y llamó a signOut()
-                // usar un timeout para establecer loading en false después de signOut
-                setTimeout(() => {
-                  if (mounted) {
-                    setLoading(false);
-                    initialSessionLoaded.current = true;
-                  }
-                }, 300);
-              }
-            }
-          } catch (error) {
-            console.error("Error in user verification:", error);
-            if (mounted) {
-              // En caso de error, permitir acceso
-              setSession(initialSession);
-              setUser(initialSession.user);
-              setLoading(false);
-              initialSessionLoaded.current = true;
-            }
+            localStorage.setItem(
+              "user_profile_cache",
+              JSON.stringify({
+                data: result.data,
+                timestamp: Date.now(),
+              })
+            );
+          } catch (e) {
           }
         }
+
+        return result?.data || null;
       } catch (error) {
-        console.error("Error in getInitialSession:", error);
-        if (mounted) {
+        console.warn("No se pudo cargar perfil (usando caché):", error.message);
+
+        const cachedProfile = localStorage.getItem("user_profile_cache");
+        if (cachedProfile) {
+          try {
+            const parsed = JSON.parse(cachedProfile);
+            if (Date.now() - (parsed.timestamp || 0) < 300000) {
+              return parsed.data;
+            }
+          } catch (e) {
+            // Ignorar error de parseo
+          }
+        }
+
+        return null;
+      }
+    },
+    [networkStatus]
+  );
+
+  const getInitialSessionQuick = useCallback(async () => {
+    if (!isMounted.current || initializationAttempted.current) return;
+    initializationAttempted.current = true;
+
+    const globalTimeout = setTimeout(() => {
+      if (isMounted.current && loading) {
+        console.warn(
+          "AuthContext: Global timeout reached, forcing ready state"
+        );
+        setLoading(false);
+        setPermissions(defaultPermissions.guest || {});
+      }
+    }, 5000);
+
+    try {
+      let authSession = null;
+
+      try {
+        const sessionResult = await quickQuery(
+          () => supabase.auth.getSession(),
+          INITIAL_SESSION_TIMEOUT,
+          "Obtener sesión"
+        );
+
+        authSession = sessionResult?.data?.session || null;
+      } catch (error) {
+        console.warn("No se pudo obtener sesión inicial:", error.message);
+      }
+
+      if (!authSession?.user) {
+        if (isMounted.current) {
           setSession(null);
           setUser(null);
+          setUserProfile(null);
+          setUserRole(null);
+          setPermissions(defaultPermissions.guest || {});
           setLoading(false);
-          initialSessionLoaded.current = true;
         }
+        clearTimeout(globalTimeout);
+        return;
       }
-    };
 
-    // Timeout de seguridad - reducir a 7 segundos y forzar el estado sin reintentar para evitar bloqueos largos
-    const safetyTimeout = setTimeout(() => {
-      if (mounted && loading && !initialSessionLoaded.current) {
-        console.warn("AuthContext: Loading timeout, forcing loading to false. Network or Supabase may be unresponsive.");
-        if (mounted) {
-          // No intentamos getSession de nuevo porque podría colgarse otros 30s.
-          // Asumimos fallo y forzamos el render.
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          initialSessionLoaded.current = true;
-          toast.error("La conexión tardó demasiado. Por favor, intenta recargar la página.");
-        }
+      if (isMounted.current) {
+        setSession(authSession);
+        setUser(authSession.user);
+        setLoading(false);
+
+        setTimeout(async () => {
+          if (!isMounted.current) return;
+
+          try {
+            const profile = await fetchUserProfileQuick(authSession.user.id);
+
+            if (!isMounted.current) return;
+
+            if (profile) {
+              const role = profile.role || "invitado";
+              const perms = loadPermissionsFromCache(role);
+
+              setUserProfile(profile);
+              setUserRole(role);
+              setPermissions(perms);
+
+
+              const urlParams = new URLSearchParams(window.location.search);
+              const isAdminLogin = urlParams.get("admin_login") === "true";
+
+              fetchPermissionsFromDB(role).then(dbPerms => {
+                if (isMounted.current && dbPerms) {
+                  setPermissions(dbPerms);
+                }
+              });
+
+              if (isAdminLogin) {
+                if (role !== "administrador") {
+                  toast.error(
+                    "Acceso denegado. Se requieren permisos de administrador."
+                  );
+                  await supabase.auth.signOut();
+
+                  urlParams.delete("admin_login");
+                  const newUrl = window.location.pathname;
+                  window.history.replaceState({}, "", newUrl);
+
+                  setSession(null);
+                  setUser(null);
+                  setUserProfile(null);
+                  setUserRole(null);
+                  setPermissions(defaultPermissions.guest || {});
+                } else {
+                  urlParams.delete("admin_login");
+                  const newUrl = window.location.pathname;
+                  window.history.replaceState({}, "", newUrl);
+                }
+              }
+
+              if (profile.is_active === false) {
+                toast.error("Tu cuenta está desactivada.");
+                await supabase.auth.signOut();
+
+                setSession(null);
+                setUser(null);
+                setUserProfile(null);
+                setUserRole(null);
+                setPermissions(defaultPermissions.guest || {});
+              }
+            }
+          } catch (error) {
+            console.warn(
+              "Error en verificación en segundo plano:",
+              error.message
+            );
+            // Ignorar errores en verificación en segundo plano
+          }
+        }, 100);
       }
-    }, 7000);
 
-    getInitialSession();
+      clearTimeout(globalTimeout);
+    } catch (error) {
+      console.warn("Error en inicialización:", error.message);
 
-    // 2. Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      if (!mounted) return;
+      if (isMounted.current) {
+        setSession(null);
+        setUser(null);
+        setUserProfile(null);
+        setUserRole(null);
+        setPermissions(defaultPermissions.guest || {});
+        setLoading(false);
+      }
+
+      clearTimeout(globalTimeout);
+    }
+  }, [fetchUserProfileQuick, loadPermissionsFromCache, loading]);
+
+  const handleAuthChange = useCallback(
+    (event, authSession) => {
+      if (!isMounted.current) return;
+
+
 
       if (event === "SIGNED_OUT") {
         setSession(null);
         setUser(null);
         setUserProfile(null);
         setUserRole(null);
-        setPermissions(null);
+        setPermissions(defaultPermissions.guest || {});
         setLoading(false);
-        adminVerificationChecked.current = false;
+
+        try {
+          localStorage.removeItem("user_profile_cache");
+        } catch (e) {
+        }
         return;
       }
 
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        // Si getInitialSession aún no ha terminado, ignorar estos eventos
-        // para evitar conflictos con la carga inicial
-        if (!initialSessionLoaded.current) {
-          return;
-        }
-
-        if (!currentSession?.user) {
+        if (!authSession?.user) {
           setSession(null);
           setUser(null);
-          setUserProfile(null);
-          setUserRole(null);
-          setPermissions(null);
+          setPermissions(defaultPermissions.guest || {});
           setLoading(false);
           return;
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const isAdminLogin = urlParams.get("admin_login") === "true";
-
-        // Limpiar el parámetro admin_login de la URL si existe
-        if (isAdminLogin) {
-          clearAdminLoginParam();
-        }
-
-        if (isAdminLogin) {
-          try {
-            const hasPermission = await verifyAdminRole(currentSession.user, () => {
-              // Callback para establecer estado antes de signOut
-              if (mounted) {
-                setSession(null);
-                setUser(null);
-                setUserProfile(null);
-                setUserRole(null);
-                setPermissions(null);
-              }
-            });
-            if (mounted) {
-              if (hasPermission) {
-                setSession(currentSession);
-                setUser(currentSession.user);
-                setLoading(false);
-              } else {
-                // verifyAdminRole ya estableció user/session en null y llamó a signOut()
-                // usar un timeout para establecer loading en false después de signOut
-                setTimeout(() => {
-                  if (mounted) {
-                    setLoading(false);
-                  }
-                }, 300);
-              }
-            }
-          } catch (error) {
-            console.error(
-              "Error in onAuthStateChange admin verification:",
-              error
-            );
-            if (mounted) {
-              setSession(currentSession);
-              setUser(currentSession.user);
-              setLoading(false);
-            }
-          }
-        } else {
-          // Esperar un poco para que el formulario tenga tiempo de verificar primero
-          // Esto evita toasts duplicados cuando el formulario ya maneja el error
-          await new Promise(resolve => setTimeout(resolve, 100));
+        setSession(authSession);
+        setUser(authSession.user);
+        setLoading(false);
+        setTimeout(async () => {
+          if (!isMounted.current) return;
 
           try {
-            // Verificar si la sesión sigue activa (el formulario podría haber hecho signOut)
-            // Usar timeout más corto para no bloquear la UI
-            const { data: { session: currentSessionCheck } } = await safeQuery(
-              () => supabase.auth.getSession(),
-              15000, // 15 segundos timeout (más corto para no bloquear)
-              0,     // Sin reintentos
-              15000  // 15 segundos máximo total
-            );
-            if (!currentSessionCheck?.user) {
-              // La sesión ya fue cerrada, probablemente por el formulario
-              if (mounted) {
-                setSession(null);
-                setUser(null);
-                setLoading(false);
-              }
-              return;
-            }
+            const profile = await fetchUserProfileQuick(authSession.user.id);
 
-            const isActive = await verifyUserActive(currentSessionCheck.user, () => {
-              // Callback para establecer estado antes de signOut
-              if (mounted) {
-                setSession(null);
-                setUser(null);
-              }
-            });
-            if (mounted) {
-              if (isActive) {
-                setSession(currentSessionCheck);
-                setUser(currentSessionCheck.user);
-                setLoading(false);
-              } else {
-                // verifyUserActive ya estableció user/session en null y llamó a signOut()
-                // usar un timeout para establecer loading en false después de signOut
-                setTimeout(() => {
-                  if (mounted) {
-                    setLoading(false);
-                  }
-                }, 300);
-              }
+            if (!isMounted.current || !profile) return;
+
+            const role = profile.role || "invitado";
+            const perms = loadPermissionsFromCache(role);
+
+            setUserProfile(profile);
+            setUserRole(role);
+            setPermissions(perms);
+
+            if (profile.is_active === false) {
+              toast.error("Tu cuenta está desactivada.");
+              await supabase.auth.signOut();
+
+              setSession(null);
+              setUser(null);
+              setUserProfile(null);
+              setUserRole(null);
+              setPermissions(defaultPermissions.guest || {});
             }
           } catch (error) {
-            console.error(
-              "Error in onAuthStateChange user verification:",
-              error
+            console.warn(
+              "Error cargando perfil en auth change:",
+              error.message
             );
-            if (mounted) {
-              // En caso de error, intentar obtener sesión con timeout corto
-              const { data: { session: currentSessionCheck } } = await safeQuery(
-                () => supabase.auth.getSession(),
-                10000, // 10 segundos timeout (muy corto para recuperación)
-                0,     // Sin reintentos
-                10000  // 10 segundos máximo total
-              );
-              if (currentSessionCheck?.user) {
-                setSession(currentSessionCheck);
-                setUser(currentSessionCheck.user);
-              }
-              setLoading(false);
-            }
           }
-        }
-      } else {
-        // Para otros eventos (como INITIAL_SESSION en recargas)
-        // Solo actualizar si getInitialSession ya terminó Y tenemos un usuario válido establecido
-        // para evitar sobrescribir un estado válido con null
-        if (initialSessionLoaded.current) {
-          if (currentSession?.user) {
-            // Solo actualizar si tenemos una sesión válida
-            setSession(currentSession);
-            setUser(currentSession.user);
-            setLoading(false);
-          }
-          // Si currentSession es null o no tiene user, NO hacer nada para preservar el estado actual
-          // Solo permitir que SIGNED_OUT maneje la limpieza del estado
-        }
-        // Si initialSessionLoaded es false, ignorar este evento y dejar que getInitialSession maneje el estado
+        }, 100);
       }
-    });
-
-    return () => {
-      mounted = false;
-      clearTimeout(safetyTimeout);
-      subscription.unsubscribe();
-    };
-  }, []);
+    },
+    [fetchUserProfileQuick, loadPermissionsFromCache]
+  );
 
   useEffect(() => {
-    const handleUnauthorized = async () => {
-      console.warn("AuthContext: Received unauthorized event, clearing session");
-      toast.error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
+    isMounted.current = true;
 
-      setSession(null);
-      setUser(null);
-      setUserProfile(null);
-      setUserRole(null);
-      setPermissions(null);
-      setLoading(false);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(handleAuthChange);
+    authSubscription.current = subscription;
 
-      await supabase.auth.signOut();
-    };
-
-    window.addEventListener('auth:unauthorized', handleUnauthorized);
-
+    getInitialSessionQuick();
     return () => {
-      window.removeEventListener('auth:unauthorized', handleUnauthorized);
-    };
-  }, []);
+      isMounted.current = false;
+      initializationAttempted.current = false;
 
-  const val = {
+      if (authSubscription.current) {
+        authSubscription.current.unsubscribe();
+      }
+    };
+  }, [getInitialSessionQuick, handleAuthChange]);
+
+  const value = {
     session,
     user,
     userRole,
     permissions,
+    userProfile,
     loading,
-    refreshPermissions: async () => {
-      if (userRole) {
-        const perms = await fetchUserPermissions(userRole);
-        setPermissions(perms);
+    networkStatus,
+    signOut: useCallback(async () => {
+      try {
+        await quickQuery(
+          () => supabase.auth.signOut(),
+          FAST_TIMEOUT,
+          "Cerrar sesión"
+        );
+      } catch (error) {
+        setSession(null);
+        setUser(null);
+        setUserProfile(null);
+        setUserRole(null);
+        setPermissions(defaultPermissions.guest || {});
       }
-    },
-    signOut: async () => {
-      await supabase.auth.signOut();
-    },
+    }, []),
+    refreshUserProfile: useCallback(async () => {
+      if (!user?.id) return;
+
+      try {
+        const profile = await fetchUserProfileQuick(user.id);
+        if (profile && isMounted.current) {
+          const role = profile.role || "invitado";
+          const perms = loadPermissionsFromCache(role);
+
+          setUserProfile(profile);
+          setUserRole(role);
+          setPermissions(perms);
+
+          fetchPermissionsFromDB(role).then(dbPerms => {
+            if (isMounted.current && dbPerms) {
+              setPermissions(dbPerms);
+            }
+          });
+        }
+      } catch (error) {
+        console.warn("Error refrescando perfil:", error.message);
+      }
+    }, [user?.id, fetchUserProfileQuick, loadPermissionsFromCache]),
   };
 
-  return <AuthContext.Provider value={val}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

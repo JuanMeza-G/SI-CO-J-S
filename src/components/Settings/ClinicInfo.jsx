@@ -25,6 +25,8 @@ const defaultSchedule = {
   sunday: { enabled: false, start: "09:00", end: "13:00" },
 };
 
+
+/** Componente para gestionar la información general de la clínica y horarios */
 const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
   const [loading, setLoading] = useState(false);
   const [schedule, setSchedule] = useState(defaultSchedule);
@@ -67,9 +69,8 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
       }
     } catch (error) {
       console.error("Error fetching clinic info:", error);
-      // No mostrar toast aquí ya que puede ser un error esperado (tabla vacía)
+
     } finally {
-      // Asegurar que siempre se resetea el estado de loading
       setLoading(false);
     }
   };
@@ -143,7 +144,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="px-0 sm:px-2">
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Datos Generales - Columna izquierda */}
             <div className="w-full lg:w-1/2">
               <h3 className="text-base sm:text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5] pb-4">
                 Datos Generales
@@ -213,7 +213,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
               </div>
             </div>
 
-            {/* Horarios de Atención - Columna derecha */}
             <div className="w-full lg:w-1/2">
               <div className="space-y-4">
                 <h3 className="text-base sm:text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5]">

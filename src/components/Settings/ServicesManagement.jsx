@@ -8,13 +8,15 @@ import Loader from "../Loader";
 import ConfirmModal from "../ConfirmModal";
 import { safeQuery } from "../../utils/supabaseHelpers";
 
+
+/** Componente para gestión CRUD de servicios */
 const ServicesManagement = forwardRef((props, ref) => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentService, setCurrentService] = useState(null);
 
-  // Delete modal state
+
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
 
@@ -43,16 +45,14 @@ const ServicesManagement = forwardRef((props, ref) => {
 
       if (error) {
         toast.error(error.message || "Error al cargar servicios. Por favor, intenta nuevamente.");
-        setServices([]); // Establecer array vacío en caso de error
         return;
       }
       setServices(data || []);
     } catch (error) {
       console.error(error);
       toast.error(error.message || "Error al cargar servicios. Por favor, intenta nuevamente.");
-      setServices([]); // Establecer array vacío en caso de error
+      setServices([]);
     } finally {
-      // Asegurar que siempre se resetea el estado de loading
       setLoading(false);
     }
   };
@@ -148,7 +148,6 @@ const ServicesManagement = forwardRef((props, ref) => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Desktop Table View */}
       <div className="hidden md:block overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
         <table className="w-full text-left text-gray-500 dark:text-[#a3a3a3]">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-[#1a1a1a] dark:text-[#a3a3a3] border-b border-gray-200 dark:border-[#262626]">
@@ -237,7 +236,6 @@ const ServicesManagement = forwardRef((props, ref) => {
         </table>
       </div>
 
-      {/* Mobile Card View */}
       <div className="md:hidden flex flex-col gap-4">
         {services.length === 0 ? (
           <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-8">
@@ -253,7 +251,6 @@ const ServicesManagement = forwardRef((props, ref) => {
               className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-4"
             >
               <div className="flex flex-col gap-3">
-                {/* Header with Name and Actions */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 dark:text-[#f5f5f5] text-base">
@@ -278,7 +275,6 @@ const ServicesManagement = forwardRef((props, ref) => {
                   </div>
                 </div>
 
-                {/* Description */}
                 {service.description && (
                   <div>
                     <p className="text-sm text-gray-600 dark:text-[#e5e5e5]">
@@ -287,7 +283,6 @@ const ServicesManagement = forwardRef((props, ref) => {
                   </div>
                 )}
 
-                {/* Price and Duration Row */}
                 <div className="flex items-center justify-between gap-4 pt-2 border-t border-gray-200 dark:border-[#262626]">
                   <div className="flex flex-col">
                     <span className="text-xs text-gray-500 dark:text-[#a3a3a3]">
@@ -328,11 +323,10 @@ const ServicesManagement = forwardRef((props, ref) => {
             </label>
             <input
               {...register("name", { required: "El nombre es obligatorio" })}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none ${
-                errors.name
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none ${errors.name
                   ? "border-red-500 focus:ring-red-500 bg-red-50"
                   : "border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
-              }`}
+                }`}
               placeholder="Ej: Consulta de Optometría"
             />
             {errors.name && (

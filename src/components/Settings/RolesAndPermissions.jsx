@@ -7,6 +7,8 @@ import Loader from "../Loader";
 import { safeQuery } from "../../utils/supabaseHelpers";
 import { modules, defaultPermissions } from "../../utils/permissions";
 
+
+/** Componente para gestionar roles y permisos de usuarios */
 const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
   const [roles, setRoles] = useState([]);
   const [permissions, setPermissions] = useState({});
@@ -49,25 +51,24 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
 
       if (error) throw error;
 
-      // Obtener roles únicos
       const uniqueRoles = [...new Set(usersData.map((u) => u.role))].filter(Boolean);
 
-      // Si no hay roles en la BD, usar los roles por defecto
+
       const rolesList = uniqueRoles.length > 0
         ? uniqueRoles
         : ["administrador", "optometra", "secretaria"];
 
       setRoles(rolesList);
 
-      // Intentar cargar desde localStorage primero
+
       const savedPermissions = localStorage.getItem("role_permissions");
       if (savedPermissions) {
         try {
           const parsed = JSON.parse(savedPermissions);
-          // Verificar que tenga la estructura correcta
+
           if (parsed && typeof parsed === "object") {
             setPermissions(parsed);
-            setInitialPermissions(JSON.parse(JSON.stringify(parsed))); // Deep copy
+            setInitialPermissions(JSON.parse(JSON.stringify(parsed)));
             setLoading(false);
             return;
           }
@@ -85,17 +86,13 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
       );
 
       if (permError || !permissionsData || permissionsData.length === 0) {
-        // Usar permisos por defecto
         const defaultPerms = {};
         rolesList.forEach((role) => {
           defaultPerms[role] = defaultPermissions[role] || {};
         });
         setPermissions(defaultPerms);
-        setInitialPermissions(JSON.parse(JSON.stringify(defaultPerms))); // Deep copy
-        // Guardar en localStorage
         localStorage.setItem("role_permissions", JSON.stringify(defaultPerms));
       } else {
-        // Convertir datos de BD a formato de permisos
         const perms = {};
         rolesList.forEach((role) => {
           perms[role] = {};
@@ -110,13 +107,10 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           });
         });
         setPermissions(perms);
-        setInitialPermissions(JSON.parse(JSON.stringify(perms))); // Deep copy
-        // Guardar en localStorage como respaldo
         localStorage.setItem("role_permissions", JSON.stringify(perms));
       }
     } catch (error) {
       console.error("Error fetching roles and permissions:", error);
-      // En caso de error, intentar cargar desde localStorage
       const savedPermissions = localStorage.getItem("role_permissions");
       if (savedPermissions) {
         try {
@@ -124,7 +118,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           if (parsed && typeof parsed === "object") {
             setPermissions(parsed);
             setInitialPermissions(JSON.parse(JSON.stringify(parsed))); // Deep copy
-            // Obtener roles desde los permisos guardados
             const savedRoles = Object.keys(parsed);
             if (savedRoles.length > 0) {
               setRoles(savedRoles);
@@ -134,7 +127,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           } else {
             throw new Error("Invalid saved permissions");
           }
-        } catch (e) {
           // Si falla, usar roles y permisos por defecto
           const defaultRoles = ["administrador", "optometra", "secretaria"];
           setRoles(defaultRoles);
@@ -143,10 +135,19 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
             defaultPerms[role] = defaultPermissions[role] || {};
           });
           setPermissions(defaultPerms);
-          setInitialPermissions(JSON.parse(JSON.stringify(defaultPerms))); // Deep copy
+          setInitialPermissions(JSON.parse(JSON.stringify(defaultPerms)));
+        } catch (error) {
+          console.warn("Error parsing local permissions:", error);
+          const defaultRoles = ["administrador", "optometra", "secretaria"];
+          setRoles(defaultRoles);
+          const defaultPerms = {};
+          defaultRoles.forEach((role) => {
+            defaultPerms[role] = defaultPermissions[role] || {};
+          });
+          setPermissions(defaultPerms);
+          setInitialPermissions(JSON.parse(JSON.stringify(defaultPerms)));
         }
       } else {
-        // Usar roles y permisos por defecto
         const defaultRoles = ["administrador", "optometra", "secretaria"];
         setRoles(defaultRoles);
         const defaultPerms = {};
@@ -154,7 +155,7 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           defaultPerms[role] = defaultPermissions[role] || {};
         });
         setPermissions(defaultPerms);
-        setInitialPermissions(JSON.parse(JSON.stringify(defaultPerms))); // Deep copy
+        setInitialPermissions(JSON.parse(JSON.stringify(defaultPerms)));
       }
       toast.error("Error cargando roles y permisos. Usando configuración guardada o por defecto.");
     } finally {
@@ -174,13 +175,12 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           },
         },
       };
-      // Guardar en localStorage inmediatamente
+
       localStorage.setItem("role_permissions", JSON.stringify(updated));
       return updated;
     });
   };
 
-  // Detectar cambios en los permisos
   useEffect(() => {
     const hasChanges = JSON.stringify(permissions) !== JSON.stringify(initialPermissions);
     if (onDirtyChange) {
@@ -197,7 +197,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
         throw new Error("No hay roles definidos para guardar.");
       }
 
-      // Primero, eliminar permisos existentes para estos roles
       const { error: deleteError } = await supabase
         .from("role_permissions")
         .delete()
@@ -208,7 +207,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
         throw deleteError;
       }
 
-      // Preparar datos para insertar
       const permissionsToInsert = [];
       roles.forEach((role) => {
         modules.forEach((module) => {
@@ -224,7 +222,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
         });
       });
 
-      // Insertar nuevos permisos
       if (permissionsToInsert.length > 0) {
         const { error: insertError } = await supabase
           .from("role_permissions")
@@ -232,7 +229,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
 
         if (insertError) {
           console.error("Error inserting permissions:", insertError);
-          // Si la tabla no existe o error, guardar localmente
           if (insertError.code === "42P01") {
             localStorage.setItem("role_permissions", JSON.stringify(permissions));
             toast.success("Permisos guardados localmente (tabla no existe).", { id: toastId });
@@ -247,7 +243,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
         toast.success("No hay permisos para guardar.", { id: toastId });
       }
 
-      // Actualizar estado inicial y recargar
       setInitialPermissions(JSON.parse(JSON.stringify(permissions)));
       setTimeout(() => {
         window.location.reload();
@@ -255,11 +250,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
 
     } catch (error) {
       console.error("Error saving permissions:", error);
-      // Fallback local
-      localStorage.setItem("role_permissions", JSON.stringify(permissions));
-      toast.error("Error guardando permisos (backup local).", { id: toastId });
-
-      // Intentar recargar de todos modos para asegurar consistencia
       setTimeout(() => {
         window.location.reload();
       }, 2000);
@@ -300,7 +290,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Desktop Table View */}
       <div className="hidden md:block overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
         <table className="w-full text-left text-gray-500 dark:text-[#a3a3a3]">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-[#1a1a1a] dark:text-[#a3a3a3] border-b border-gray-200 dark:border-[#262626]">
@@ -404,7 +393,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
         </table>
       </div>
 
-      {/* Mobile Card View */}
       <div className="md:hidden flex flex-col gap-4">
         {roles.length === 0 ? (
           <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-8">
@@ -420,7 +408,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
               className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-4"
             >
               <div className="flex flex-col gap-4">
-                {/* Role Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-[#262626]">
                   <span
                     className={`px-3 py-1 rounded-lg text-sm font-medium border ${getRoleBadgeColor(
@@ -431,7 +418,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
                   </span>
                 </div>
 
-                {/* Modules */}
                 {modules.map((module) => (
                   <div
                     key={module.id}

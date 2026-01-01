@@ -1,5 +1,6 @@
 import React from 'react';
 
+/** Página de gestión de pacientes */
 const Patients = () => {
     return (
         <div className="p-6">

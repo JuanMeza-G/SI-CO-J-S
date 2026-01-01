@@ -12,6 +12,8 @@ const adminSchema = z.object({
   password: z.string().min(8, "La contraseña debe tener mínimo 8 caracteres"),
 });
 
+
+/** Formulario de inicio de sesión para administradores con opción de Google */
 const AdminForm = () => {
   const {
     register,
@@ -43,11 +45,9 @@ const AdminForm = () => {
 
         if (userProfile?.is_active === false) {
           await supabase.auth.signOut();
-          // No lanzar error aquí, dejar que AuthContext maneje el toast
-          // Solo retornar para evitar mostrar el toast de éxito
           return;
         }
-        // Si is_active es null o undefined, tratarlo como activo (por defecto)
+
 
         if (userProfile?.role !== "administrador") {
           await supabase.auth.signOut();

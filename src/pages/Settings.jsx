@@ -20,6 +20,7 @@ import { IoArrowBackSharp } from "react-icons/io5";
 import { FaPlus, FaSave } from "react-icons/fa";
 import { useRef } from "react";
 
+/** Página de configuración del sistema (Usuarios, Servicios, Roles, etc.) */
 const Settings = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [activeView, setActiveView] = useState("menu");

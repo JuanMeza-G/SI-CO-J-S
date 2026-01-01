@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-// Función para detectar la preferencia del sistema
+/** Hook personalizado para gestionar el tema (claro/oscuro) */
 const getSystemTheme = () => {
     if (typeof window !== 'undefined' && window.matchMedia) {
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -9,7 +9,6 @@ const getSystemTheme = () => {
 };
 
 export const useTheme = () => {
-    // Obtener tema de localStorage o usar la preferencia del sistema
     const getInitialTheme = () => {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
@@ -30,11 +29,10 @@ export const useTheme = () => {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    // Escuchar cambios en la preferencia del sistema solo si no hay tema guardado
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
-            return; // Si hay tema guardado, no escuchar cambios del sistema
+            return;
         }
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -42,11 +40,9 @@ export const useTheme = () => {
             setTheme(e.matches ? 'dark' : 'light');
         };
 
-        // Agregar listener
         if (mediaQuery.addEventListener) {
             mediaQuery.addEventListener('change', handleChange);
         } else {
-            // Fallback para navegadores antiguos
             mediaQuery.addListener(handleChange);
         }
 

@@ -3,6 +3,8 @@ import MyRoutes from "./routes";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 
+
+/** Componente principal que maneja los proveedores y rutas */
 function App() {
   return (
     <AuthProvider>

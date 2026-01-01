@@ -2,6 +2,8 @@ import React from "react";
 import Modal from "./Modal";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 
+
+/** Modal de confirmación para acciones destructivas o importantes */
 const ConfirmModal = ({
   isOpen,
   onClose,
@@ -13,14 +15,14 @@ const ConfirmModal = ({
 }) => {
   const isActivate = confirmText.toLowerCase() === "activar";
   const Icon = isActivate ? CheckCircle : AlertTriangle;
-  const iconBgColor = isActivate 
-    ? "bg-green-100 dark:bg-green-900/30" 
+  const iconBgColor = isActivate
+    ? "bg-green-100 dark:bg-green-900/30"
     : "bg-red-100 dark:bg-red-900/30";
-  const iconColor = isActivate 
-    ? "text-green-600 dark:text-green-500" 
+  const iconColor = isActivate
+    ? "text-green-600 dark:text-green-500"
     : "text-red-600 dark:text-red-500";
-  const buttonBgColor = isActivate 
-    ? "bg-green-600 hover:bg-green-700" 
+  const buttonBgColor = isActivate
+    ? "bg-green-600 hover:bg-green-700"
     : "bg-red-600 hover:bg-red-700";
 
   return (

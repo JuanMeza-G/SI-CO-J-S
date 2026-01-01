@@ -1,5 +1,6 @@
 import React from "react";
 
+/** Página del panel de control principal */
 const Dashboard = () => {
   return (
     <div className="flex flex-col p-6">
