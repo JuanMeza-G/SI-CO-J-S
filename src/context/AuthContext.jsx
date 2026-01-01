@@ -7,6 +7,8 @@ import React, {
 } from "react";
 import { supabase } from "../supabaseClient";
 import { toast } from "sonner";
+import { safeQuery } from "../utils/supabaseHelpers";
+import { defaultPermissions, modules } from "../utils/permissions";
 
 const AuthContext = createContext({});
 
@@ -15,30 +17,106 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [permissions, setPermissions] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const adminVerificationChecked = useRef(false);
   const initialSessionLoaded = useRef(false);
 
+  const fetchUserPermissions = async (role) => {
+    if (!role) return null;
+
+    try {
+      // 1. Intentar cargar desde localStorage primero (como respaldo rápido)
+      const savedPermissions = localStorage.getItem("role_permissions");
+      let localPerms = null;
+      if (savedPermissions) {
+        try {
+          localPerms = JSON.parse(savedPermissions);
+        } catch (e) {
+          console.warn("Error parsing saved permissions", e);
+        }
+      }
+
+      // 2. Cargar desde BD
+      const { data: dbPerms, error } = await safeQuery(
+        () => supabase.from("role_permissions").select("*").eq("role", role),
+        30000, // 30 segundos timeout
+        0,     // Sin reintentos para fallar rápido
+        30000  // 30 segundos máximo total
+      );
+
+      if (error || !dbPerms || dbPerms.length === 0) {
+        // Si falla BD, usar localStorage si coincide el rol, o defaults
+        if (localPerms && localPerms[role]) {
+          return localPerms[role];
+        }
+        return defaultPermissions[role] || {};
+      }
+
+      // 3. Procesar datos de BD
+      const formattedPerms = {};
+
+      // Inicializar con la estructura de modulos vacia para el rol actual
+      modules.forEach(m => {
+        formattedPerms[m.id] = {};
+        m.permissions.forEach(p => {
+          formattedPerms[m.id][p] = false;
+        });
+      });
+
+      // Llenar con lo que viene de BD
+      dbPerms.forEach(p => {
+        if (!formattedPerms[p.module]) formattedPerms[p.module] = {};
+        formattedPerms[p.module][p.permission] = p.allowed;
+      });
+
+      return formattedPerms;
+
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      return defaultPermissions[role] || {};
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
+
+    const fetchProfileAndPermissions = async (userId) => {
+      try {
+        const { data: profile, error } = await safeQuery(
+          () => supabase.from("users").select("*").eq("id", userId).single(),
+          30000, // 30 segundos timeout
+          0,     // Sin reintentos para fallar rápido
+          30000  // 30 segundos máximo total
+        );
+
+        if (error || !profile) return null;
+
+        const role = profile.role;
+        const perms = await fetchUserPermissions(role);
+
+        return { profile, role, perms };
+      } catch (e) {
+        console.error("Error fetching full profile:", e);
+        return null;
+      }
+    };
 
     // Función para verificar rol de administrador y estado activo
     const verifyAdminRole = async (currentUser, onUnauthorized) => {
       // Resetear el ref al inicio de cada verificación para permitir verificaciones en recargas
       adminVerificationChecked.current = false;
-      
+
       // Marcar que estamos verificando para evitar verificaciones simultáneas
       adminVerificationChecked.current = true;
 
       try {
-        const { data: userProfile, error: profileError } = await supabase
-          .from("users")
-          .select("role, is_active")
-          .eq("id", currentUser.id)
-          .single();
+        const result = await fetchProfileAndPermissions(currentUser.id);
+        const userProfile = result?.profile;
 
-        if (profileError || !userProfile) {
-          // Establecer user/session en null ANTES de hacer signOut para evitar flash
+        if (!userProfile) {
           if (onUnauthorized) onUnauthorized();
           await supabase.auth.signOut();
           toast.error("Acceso denegado. No tienes permisos de administrador.");
@@ -46,7 +124,6 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (userProfile?.is_active === false) {
-          // Establecer user/session en null ANTES de hacer signOut para evitar flash
           if (onUnauthorized) onUnauthorized();
           await supabase.auth.signOut();
           toast.error("Acceso denegado. Tu cuenta está desactivada.");
@@ -54,47 +131,52 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (userProfile?.role !== "administrador") {
-          // Establecer user/session en null ANTES de hacer signOut para evitar flash
           if (onUnauthorized) onUnauthorized();
           await supabase.auth.signOut();
           toast.error("Acceso denegado. No tienes permisos de administrador.");
           return false;
         }
 
+        if (mounted) {
+          setUserProfile(userProfile);
+          setUserRole(userProfile.role);
+          setPermissions(result.perms);
+        }
+
         return true;
       } catch (error) {
         console.error("Error verifying admin role:", error);
-        // En caso de error, permitir acceso (fail-safe)
-        return true;
+        return true; // Fail-safe
       }
     };
 
     // Función para verificar estado activo de cualquier usuario
     const verifyUserActive = async (currentUser, onUnauthorized) => {
       try {
-        const { data: userProfile, error: profileError } = await supabase
-          .from("users")
-          .select("is_active")
-          .eq("id", currentUser.id)
-          .single();
+        const result = await fetchProfileAndPermissions(currentUser.id);
+        const userProfile = result?.profile;
 
-        // Si hay error o no hay perfil, permitir acceso (puede ser usuario nuevo o columna no existe)
-        if (profileError || !userProfile) {
+        if (!userProfile) {
+          // Si no hay perfil, permitir acceso limitado pero no cargar permisos completos aun
           return true;
         }
 
         if (userProfile?.is_active === false) {
-          // Establecer user/session en null ANTES de hacer signOut para evitar flash
           if (onUnauthorized) onUnauthorized();
           await supabase.auth.signOut();
           toast.error("Acceso denegado. Tu cuenta está desactivada.");
           return false;
         }
 
+        if (mounted) {
+          setUserProfile(userProfile);
+          setUserRole(userProfile.role);
+          setPermissions(result.perms);
+        }
+
         return true;
       } catch (error) {
         console.error("Error verifying user active status:", error);
-        // En caso de error, permitir acceso (fail-safe)
         return true;
       }
     };
@@ -114,12 +196,17 @@ export const AuthProvider = ({ children }) => {
       // Resetear el ref al inicio para permitir verificaciones en recargas
       adminVerificationChecked.current = false;
       initialSessionLoaded.current = false;
-      
+
       try {
         const {
           data: { session: initialSession },
           error,
-        } = await supabase.auth.getSession();
+        } = await safeQuery(
+          () => supabase.auth.getSession(),
+          30000, // 30 segundos timeout
+          0,     // Sin reintentos para fallar rápido
+          30000  // 30 segundos máximo total
+        );
 
         if (error) {
           console.error("Error getting session:", error);
@@ -146,7 +233,7 @@ export const AuthProvider = ({ children }) => {
         // Verificar si viene del login de admin
         const urlParams = new URLSearchParams(window.location.search);
         const isAdminLogin = urlParams.get("admin_login") === "true";
-        
+
         // Limpiar el parámetro admin_login de la URL si existe
         if (isAdminLogin) {
           clearAdminLoginParam();
@@ -159,6 +246,9 @@ export const AuthProvider = ({ children }) => {
               if (mounted) {
                 setSession(null);
                 setUser(null);
+                setUserProfile(null);
+                setUserRole(null);
+                setPermissions(null);
               }
             });
             if (mounted) {
@@ -181,7 +271,6 @@ export const AuthProvider = ({ children }) => {
           } catch (error) {
             console.error("Error in admin verification:", error);
             if (mounted) {
-              // En caso de error, permitir acceso
               setSession(initialSession);
               setUser(initialSession.user);
               setLoading(false);
@@ -196,6 +285,9 @@ export const AuthProvider = ({ children }) => {
               if (mounted) {
                 setSession(null);
                 setUser(null);
+                setUserProfile(null);
+                setUserRole(null);
+                setPermissions(null);
               }
             });
             if (mounted) {
@@ -237,13 +329,21 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Timeout de seguridad - reducir a 5 segundos
+    // Timeout de seguridad - reducir a 7 segundos y forzar el estado sin reintentar para evitar bloqueos largos
     const safetyTimeout = setTimeout(() => {
-      if (mounted && loading) {
-        console.warn("AuthContext: Loading timeout, forcing loading to false");
-        setLoading(false);
+      if (mounted && loading && !initialSessionLoaded.current) {
+        console.warn("AuthContext: Loading timeout, forcing loading to false. Network or Supabase may be unresponsive.");
+        if (mounted) {
+          // No intentamos getSession de nuevo porque podría colgarse otros 30s.
+          // Asumimos fallo y forzamos el render.
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          initialSessionLoaded.current = true;
+          toast.error("La conexión tardó demasiado. Por favor, intenta recargar la página.");
+        }
       }
-    }, 5000);
+    }, 7000);
 
     getInitialSession();
 
@@ -256,6 +356,9 @@ export const AuthProvider = ({ children }) => {
       if (event === "SIGNED_OUT") {
         setSession(null);
         setUser(null);
+        setUserProfile(null);
+        setUserRole(null);
+        setPermissions(null);
         setLoading(false);
         adminVerificationChecked.current = false;
         return;
@@ -267,17 +370,20 @@ export const AuthProvider = ({ children }) => {
         if (!initialSessionLoaded.current) {
           return;
         }
-        
+
         if (!currentSession?.user) {
           setSession(null);
           setUser(null);
+          setUserProfile(null);
+          setUserRole(null);
+          setPermissions(null);
           setLoading(false);
           return;
         }
 
         const urlParams = new URLSearchParams(window.location.search);
         const isAdminLogin = urlParams.get("admin_login") === "true";
-        
+
         // Limpiar el parámetro admin_login de la URL si existe
         if (isAdminLogin) {
           clearAdminLoginParam();
@@ -290,6 +396,9 @@ export const AuthProvider = ({ children }) => {
               if (mounted) {
                 setSession(null);
                 setUser(null);
+                setUserProfile(null);
+                setUserRole(null);
+                setPermissions(null);
               }
             });
             if (mounted) {
@@ -322,10 +431,16 @@ export const AuthProvider = ({ children }) => {
           // Esperar un poco para que el formulario tenga tiempo de verificar primero
           // Esto evita toasts duplicados cuando el formulario ya maneja el error
           await new Promise(resolve => setTimeout(resolve, 100));
-          
+
           try {
             // Verificar si la sesión sigue activa (el formulario podría haber hecho signOut)
-            const { data: { session: currentSessionCheck } } = await supabase.auth.getSession();
+            // Usar timeout más corto para no bloquear la UI
+            const { data: { session: currentSessionCheck } } = await safeQuery(
+              () => supabase.auth.getSession(),
+              15000, // 15 segundos timeout (más corto para no bloquear)
+              0,     // Sin reintentos
+              15000  // 15 segundos máximo total
+            );
             if (!currentSessionCheck?.user) {
               // La sesión ya fue cerrada, probablemente por el formulario
               if (mounted) {
@@ -335,7 +450,7 @@ export const AuthProvider = ({ children }) => {
               }
               return;
             }
-            
+
             const isActive = await verifyUserActive(currentSessionCheck.user, () => {
               // Callback para establecer estado antes de signOut
               if (mounted) {
@@ -364,7 +479,13 @@ export const AuthProvider = ({ children }) => {
               error
             );
             if (mounted) {
-              const { data: { session: currentSessionCheck } } = await supabase.auth.getSession();
+              // En caso de error, intentar obtener sesión con timeout corto
+              const { data: { session: currentSessionCheck } } = await safeQuery(
+                () => supabase.auth.getSession(),
+                10000, // 10 segundos timeout (muy corto para recuperación)
+                0,     // Sin reintentos
+                10000  // 10 segundos máximo total
+              );
               if (currentSessionCheck?.user) {
                 setSession(currentSessionCheck);
                 setUser(currentSessionCheck.user);
@@ -398,10 +519,40 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleUnauthorized = async () => {
+      console.warn("AuthContext: Received unauthorized event, clearing session");
+      toast.error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
+
+      setSession(null);
+      setUser(null);
+      setUserProfile(null);
+      setUserRole(null);
+      setPermissions(null);
+      setLoading(false);
+
+      await supabase.auth.signOut();
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, []);
+
   const val = {
     session,
     user,
+    userRole,
+    permissions,
     loading,
+    refreshPermissions: async () => {
+      if (userRole) {
+        const perms = await fetchUserPermissions(userRole);
+        setPermissions(perms);
+      }
+    },
     signOut: async () => {
       await supabase.auth.signOut();
     },

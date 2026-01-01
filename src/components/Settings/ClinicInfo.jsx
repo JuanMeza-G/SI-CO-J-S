@@ -3,6 +3,7 @@ import { supabase } from "../../supabaseClient";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import Loader from "../Loader";
+import { safeQuery } from "../../utils/supabaseHelpers";
 
 const daysMap = {
   monday: "Lunes",
@@ -42,10 +43,13 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
   const fetchInfo = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("clinic_info")
-        .select("*")
-        .single();
+      const { data, error } = await safeQuery(
+        () => supabase
+          .from("clinic_info")
+          .select("*")
+          .single()
+        // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
+      );
 
       if (data) {
         const formData = {};
@@ -63,7 +67,9 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
       }
     } catch (error) {
       console.error("Error fetching clinic info:", error);
+      // No mostrar toast aquí ya que puede ser un error esperado (tabla vacía)
     } finally {
+      // Asegurar que siempre se resetea el estado de loading
       setLoading(false);
     }
   };
@@ -135,14 +141,14 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="px-2">
+        <div className="px-0 sm:px-2">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Datos Generales - Columna izquierda */}
-            <div className="lg:w-1/2">
-              <h3 className="text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5] pb-4">
+            <div className="w-full lg:w-1/2">
+              <h3 className="text-base sm:text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5] pb-4">
                 Datos Generales
               </h3>
-              <div className="space-y-4 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#262626] rounded-lg p-4">
+              <div className="space-y-4 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#262626] rounded-lg p-3 sm:p-4">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Nombre del Centro
@@ -208,12 +214,12 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
             </div>
 
             {/* Horarios de Atención - Columna derecha */}
-            <div className="lg:w-1/2">
+            <div className="w-full lg:w-1/2">
               <div className="space-y-4">
-                <h3 className="text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5]">
+                <h3 className="text-base sm:text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5]">
                   Horarios de Atención
                 </h3>
-                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#262626] rounded-lg p-4">
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#262626] rounded-lg p-3 sm:p-4">
                   <div className="space-y-3">
                     {Object.entries(daysMap).map(([key, label]) => (
                       <div
@@ -234,7 +240,7 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                                 e.target.checked
                               )
                             }
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-[#1a1a1a] dark:border-[#262626] cursor-pointer"
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-[#1a1a1a] dark:border-[#262626] cursor-pointer flex-shrink-0"
                           />
                           <span
                             className={`text-sm font-medium ${schedule[key]?.enabled
@@ -247,7 +253,7 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                         </div>
 
                         {schedule[key]?.enabled ? (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                             <input
                               type="time"
                               value={schedule[key]?.start}
@@ -258,7 +264,7 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                                   e.target.value
                                 )
                               }
-                              className="px-2 py-1.5 text-sm border border-gray-300 dark:border-[#262626] rounded bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-1 focus:ring-blue-500 outline-none w-30"
+                              className="px-2 py-1.5 text-sm border border-gray-300 dark:border-[#262626] rounded bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-1 focus:ring-blue-500 outline-none w-full sm:w-auto min-w-[100px]"
                             />
                             <span className="text-gray-400 dark:text-[#a3a3a3] text-sm">
                               a
@@ -269,7 +275,7 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                               onChange={(e) =>
                                 handleScheduleChange(key, "end", e.target.value)
                               }
-                              className="px-2 py-1.5 text-sm border border-gray-300 dark:border-[#262626] rounded bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-1 focus:ring-blue-500 outline-none w-30"
+                              className="px-2 py-1.5 text-sm border border-gray-300 dark:border-[#262626] rounded bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-1 focus:ring-blue-500 outline-none w-full sm:w-auto min-w-[100px]"
                             />
                           </div>
                         ) : (

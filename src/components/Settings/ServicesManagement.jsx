@@ -6,6 +6,7 @@ import { FaTrash, FaEdit, FaPlus, FaGlasses } from "react-icons/fa";
 import Modal from "../Modal";
 import Loader from "../Loader";
 import ConfirmModal from "../ConfirmModal";
+import { safeQuery } from "../../utils/supabaseHelpers";
 
 const ServicesManagement = forwardRef((props, ref) => {
   const [services, setServices] = useState([]);
@@ -32,17 +33,26 @@ const ServicesManagement = forwardRef((props, ref) => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .order("name");
+      const { data, error } = await safeQuery(
+        () => supabase
+          .from("services")
+          .select("*")
+          .order("name")
+        // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
+      );
 
-      if (error) throw error;
+      if (error) {
+        toast.error(error.message || "Error al cargar servicios. Por favor, intenta nuevamente.");
+        setServices([]); // Establecer array vacío en caso de error
+        return;
+      }
       setServices(data || []);
     } catch (error) {
-      toast.error("Error al cargar servicios");
       console.error(error);
+      toast.error(error.message || "Error al cargar servicios. Por favor, intenta nuevamente.");
+      setServices([]); // Establecer array vacío en caso de error
     } finally {
+      // Asegurar que siempre se resetea el estado de loading
       setLoading(false);
     }
   };
@@ -138,7 +148,8 @@ const ServicesManagement = forwardRef((props, ref) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
         <table className="w-full text-left text-gray-500 dark:text-[#a3a3a3]">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-[#1a1a1a] dark:text-[#a3a3a3] border-b border-gray-200 dark:border-[#262626]">
             <tr>
@@ -226,6 +237,85 @@ const ServicesManagement = forwardRef((props, ref) => {
         </table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-4">
+        {services.length === 0 ? (
+          <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-8">
+            <div className="flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-[#a3a3a3]">
+              <FaGlasses className="text-4xl text-gray-300 dark:text-[#1a1a1a]" />
+              <p>No hay servicios registrados</p>
+            </div>
+          </div>
+        ) : (
+          services.map((service) => (
+            <div
+              key={service.id}
+              className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-4"
+            >
+              <div className="flex flex-col gap-3">
+                {/* Header with Name and Actions */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-[#f5f5f5] text-base">
+                      {service.name}
+                    </h3>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(service)}
+                      className="p-2 rounded-lg transition-all duration-200 cursor-pointer text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                      title="Editar"
+                    >
+                      <FaEdit size={18} />
+                    </button>
+                    <button
+                      onClick={() => confirmDelete(service)}
+                      className="p-2 rounded-lg transition-all duration-200 cursor-pointer text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                      title="Eliminar"
+                    >
+                      <FaTrash size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {service.description && (
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-[#e5e5e5]">
+                      {service.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Price and Duration Row */}
+                <div className="flex items-center justify-between gap-4 pt-2 border-t border-gray-200 dark:border-[#262626]">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500 dark:text-[#a3a3a3]">
+                      Precio
+                    </span>
+                    <span className="text-base font-semibold text-green-600 dark:text-green-400">
+                      {new Intl.NumberFormat("es-CO", {
+                        style: "currency",
+                        currency: "COP",
+                        minimumFractionDigits: 0,
+                      }).format(service.price)}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs text-gray-500 dark:text-[#a3a3a3]">
+                      Duración
+                    </span>
+                    <span className="text-base font-medium text-gray-700 dark:text-[#e5e5e5]">
+                      {service.duration_minutes} min
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -262,7 +352,7 @@ const ServicesManagement = forwardRef((props, ref) => {
               placeholder="Ej: Examen completo de refracción y salud ocular..."
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-[#e5e5e5]">
                 Precio

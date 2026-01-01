@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
+import { safeQuery } from "../utils/supabaseHelpers";
 import {
   FiHome,
   FiUsers,
@@ -35,7 +36,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
   const isDarkMode = theme === "dark";
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, userRole, permissions } = useAuth();
   const { signOut } = useAuth();
   const [userData, setUserData] = useState(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
@@ -49,17 +50,22 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       if (user) {
         const { full_name, avatar_url } = user.user_metadata || {};
 
-        let { data: profile, error: fetchError } = await supabase
-          .from("users")
-          .select("role, full_name, avatar_url")
-          .eq("id", user.id)
-          .maybeSingle();
+        let { data: profile, error: fetchError } = await safeQuery(
+          () => supabase
+            .from("users")
+            .select("role, full_name, avatar_url")
+            .eq("id", user.id)
+            .maybeSingle()
+          // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
+        );
 
         if (fetchError) {
           console.error("Error fetching user profile:", fetchError);
           // Only show toast if it's not a connection error we can ignore casually
-          if (!fetchError.message.includes("fetch")) {
+          if (!fetchError.message?.includes("fetch") && !fetchError.message?.includes("tiempo de espera")) {
             toast.error("Error cargando perfil desde base de datos");
+          } else if (fetchError.message?.includes("tiempo de espera")) {
+            toast.error("Tiempo de espera agotado. Por favor, intenta nuevamente.");
           }
         }
 
@@ -72,7 +78,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
 
           // Solo mostramos un mensaje informativo, no creamos el perfil automáticamente
           console.warn("Usuario sin perfil en la base de datos. Debe ser registrado por un administrador.");
-          
+
           // Si el usuario no tiene perfil, no podemos establecer userData
           // Esto evitará que acceda a funcionalidades que requieren rol
           setUserData({
@@ -84,7 +90,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           setLoadingUserData(false);
           return; // Salir temprano si no hay perfil
         }
-        
+
         // Caso 2: Existe perfil pero no tiene rol
         // NO asignamos automáticamente rol de administrador
         if (profile && !profile.role) {
@@ -182,6 +188,16 @@ const Sidebar = ({ activeTab, onTabChange }) => {
     // No mostrar items hasta que se cargue el rol del usuario
     if (loadingUserData || !userData?.role) return [];
 
+    // Si tenemos permisos cargados en el contexto, usarlos
+    if (permissions) {
+      return allMenuItems.filter(item => {
+        // Verificar si el módulo existe en los permisos y si tiene permiso de visualización ('view')
+        const modulePermissions = permissions[item.id];
+        return modulePermissions?.view === true;
+      });
+    }
+
+    // Fallback a lógica antigua si no hay permisos (por si acaso)
     const role = userData.role.toLowerCase();
 
     if (role === 'secretaria') {
@@ -307,7 +323,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 )}
               </button>
 
-                  {profileMenuOpen && (
+              {profileMenuOpen && (
                 <div className="absolute bottom-0 left-full ml-2 bg-white dark:bg-[#1e1e1e] rounded-lg border-2 border-gray-200 dark:border-[#262626] overflow-hidden z-20 min-w-60 shadow-xl">
                   <div className="px-3 py-2 border-b border-gray-200 dark:border-[#262626] bg-gray-100 dark:bg-[#1a1a1a]">
                     <div className="flex items-center gap-3">

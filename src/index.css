@@ -23,10 +23,42 @@
     --dark-hover-subtle: #242424;
 }
 
+/* Estilos base para body y html */
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #ffffff;
+    color: #000000;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 /* Aplicar colores de modo oscuro cuando la clase .dark está presente */
 .dark {
     --tw-bg-opacity: 1;
     --tw-text-opacity: 1;
+}
+
+/* Fondo oscuro para body y html en modo oscuro */
+html.dark,
+html.dark body {
+    background-color: #0a0a0a;
+    color: #f5f5f5;
+}
+
+/* Asegurar que el root también tenga el fondo correcto */
+#root {
+    min-height: 100vh;
+    background-color: #ffffff;
+    transition: background-color 0.3s ease;
+}
+
+.dark #root {
+    background-color: #0a0a0a;
+}
+
+/* Asegurar que no haya espacios sin cubrir */
+* {
+    box-sizing: border-box;
 }
 
 /* Utilidades personalizadas para modo oscuro */

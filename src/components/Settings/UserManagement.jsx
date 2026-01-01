@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { toast } from "sonner";
-import {
+import {  
   FaUserShield,
   FaUserCircle,
   FaChevronDown,
@@ -13,6 +13,7 @@ import { MdEmail } from "react-icons/md";
 import Loader from "../Loader";
 import { useAuth } from "../../context/AuthContext";
 import ConfirmModal from "../ConfirmModal";
+import { safeQuery } from "../../utils/supabaseHelpers";
 
 const UserManagement = () => {
   const { user: currentUser } = useAuth();
@@ -28,16 +29,23 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("users").select("*");
+      const { data, error } = await safeQuery(
+        () => supabase.from("users").select("*")
+        // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
+      );
 
       if (error) {
-        toast.error(`Error cargando usuarios`);
-        throw error;
+        toast.error(`Error cargando usuarios: ${error.message || 'Error desconocido'}`);
+        setUsers([]); // Establecer array vacío en caso de error para evitar UI bloqueada
+        return;
       }
       setUsers(data || []);
     } catch (error) {
       console.error("Error fetching users catch block:", error);
+      toast.error(error.message || "Error cargando usuarios. Por favor, intenta nuevamente.");
+      setUsers([]); // Establecer array vacío en caso de error para evitar UI bloqueada
     } finally {
+      // Asegurar que siempre se resetea el estado de loading
       setLoading(false);
     }
   };
@@ -118,7 +126,8 @@ const UserManagement = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
         <table className="w-full text-left text-gray-500 dark:text-[#a3a3a3]">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-[#1a1a1a] dark:text-[#a3a3a3] border-b border-gray-200 dark:border-[#262626]">
             <tr>
@@ -290,6 +299,158 @@ const UserManagement = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-4">
+        {users.length === 0 ? (
+          <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-8">
+            <div className="flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-[#a3a3a3]">
+              <FaUserShield className="text-4xl text-gray-300 dark:text-[#1a1a1a]" />
+              <p>No hay usuarios registrados</p>
+            </div>
+          </div>
+        ) : (
+          users.map((user) => (
+            <div
+              key={user.id}
+              className={`bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-4 ${
+                (user.is_active ?? true) === false ? "opacity-60" : ""
+              }`}
+            >
+              <div className="flex flex-col gap-4">
+                {/* User Info */}
+                <div className="flex items-center gap-3">
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.full_name || user.email}
+                      className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-[#262626]"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full border-2 border-white dark:border-[#262626] bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center text-gray-400 dark:text-[#a3a3a3]">
+                      <FaUserCircle size={48} />
+                    </div>
+                  )}
+                  <div className="flex-1 flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-[#f5f5f5] text-sm">
+                        {user.full_name || user.email.split("@")[0]}
+                      </span>
+                      {currentUser?.id === user.id && (
+                        <div
+                          className="w-2.5 h-2.5 rounded-full bg-green-500 border border-white dark:border-[#0a0a0a] shadow-sm"
+                          title="Sesión actual"
+                        ></div>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-[#a3a3a3]">
+                      {user.email}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Role */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-medium text-gray-700 dark:text-[#a3a3a3]">
+                    Rol
+                  </label>
+                  <div className="relative inline-block w-full">
+                    <select
+                      value={user.role || ""}
+                      onChange={(e) =>
+                        handleRoleChange(user.id, e.target.value)
+                      }
+                      disabled={
+                        user.provider === "google" ||
+                        currentUser?.id === user.id
+                      }
+                      className={`appearance-none w-full pl-3 pr-8 py-2 rounded-lg text-sm font-medium border transition-all cursor-pointer focus:ring-2 focus:ring-offset-1 focus:outline-none ${getRoleBadgeColor(
+                        user.role
+                      )} ${user.provider === "google" ||
+                        currentUser?.id === user.id
+                        ? "opacity-60 cursor-not-allowed pr-3"
+                        : ""
+                        }`}
+                    >
+                      <option value="secretaria">Secretaria</option>
+                      <option value="optometra">Optómetra</option>
+                      <option value="administrador">Administrador</option>
+                    </select>
+                    {!(
+                      user.provider === "google" ||
+                      currentUser?.id === user.id
+                    ) && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-current opacity-70">
+                          <FaChevronDown size={12} />
+                        </div>
+                      )}
+                  </div>
+                </div>
+
+                {/* Provider and Status Row */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap gap-2">
+                    {user.provider === "google" && (
+                      <div
+                        className="flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#262626]"
+                        title="Google"
+                      >
+                        <FcGoogle size={16} />
+                        <span className="text-xs font-medium text-gray-600 dark:text-[#e5e5e5]">
+                          Google
+                        </span>
+                      </div>
+                    )}
+                    {user.provider !== "google" && (
+                      <div
+                        className="flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#262626]"
+                        title="Email"
+                      >
+                        <MdEmail
+                          size={16}
+                          className="text-gray-500 dark:text-[#a3a3a3]"
+                        />
+                        <span className="text-xs font-medium text-gray-600 dark:text-[#e5e5e5]">
+                          Email
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {(user.is_active ?? true) !== false ? (
+                      <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 border border-green-200 dark:border-green-800">
+                        <FaCheckCircle size={14} />
+                        <span className="text-xs font-medium">Activo</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400 border border-gray-200 dark:border-gray-800">
+                        <FaPowerOff size={14} />
+                        <span className="text-xs font-medium">Inactivo</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => confirmToggleUser(user)}
+                      disabled={currentUser?.id === user.id}
+                      className={`p-2 rounded-lg transition-all duration-200 cursor-pointer
+                        ${currentUser?.id === user.id
+                          ? "text-gray-300 dark:text-[#1a1a1a] cursor-not-allowed"
+                          : (user.is_active ?? true) !== false
+                          ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
+                          : "text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 dark:hover:text-green-400"
+                        }
+                      `}
+                      title={(user.is_active ?? true) !== false ? "Desactivar usuario" : "Activar usuario"}
+                    >
+                      <FaPowerOff size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <ConfirmModal
