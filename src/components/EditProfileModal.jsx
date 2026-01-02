@@ -4,14 +4,16 @@ import { toast } from "sonner";
 import { supabase } from "../supabaseClient";
 import Modal from "./Modal";
 import { FaCamera, FaUser, FaLock, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import Loader from "./Loader";
 
 
-/** Modal para editar la información del perfil del usuario */
 const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [user, setUser] = useState(null);
   const [initialAvatarUrl, setInitialAvatarUrl] = useState(null);
@@ -30,6 +32,8 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       setValue("newPassword", "");
       setValue("confirmPassword", "");
       setShowPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
       setAvatarFileChanged(false);
       const fileInput = document.getElementById("avatar-upload");
       if (fileInput) {
@@ -115,8 +119,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      let avatarUrl = avatarPreview;
-
+      const avatarUrl = avatarPreview;
       const fileInput = document.getElementById("avatar-upload");
       if (fileInput?.files?.length > 0) {
         avatarUrl = await uploadAvatar(fileInput.files[0]);
@@ -161,6 +164,8 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       setValue("newPassword", "");
       setValue("confirmPassword", "");
       setShowPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
       if (onProfileUpdate) onProfileUpdate();
       onClose();
     } catch (error) {
@@ -256,24 +261,44 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
                   <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Nueva Contraseña
                   </label>
-                  <input
-                    type="password"
-                    placeholder="Mínimo 8 caracteres"
-                    {...register("newPassword")}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-[#262626] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="Mínimo 8 caracteres"
+                      {...register("newPassword")}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-[#262626] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-[#a3a3a3] dark:hover:text-[#f5f5f5] cursor-pointer transition-colors"
+                      tabIndex="-1"
+                    >
+                      {showNewPassword ? <HiOutlineEyeOff size={20} /> : <HiOutlineEye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Confirmar Contraseña
                   </label>
-                  <input
-                    type="password"
-                    placeholder="Repite la contraseña"
-                    {...register("confirmPassword")}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-[#262626] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Repite la contraseña"
+                      {...register("confirmPassword")}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-[#262626] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-[#a3a3a3] dark:hover:text-[#f5f5f5] cursor-pointer transition-colors"
+                      tabIndex="-1"
+                    >
+                      {showConfirmPassword ? <HiOutlineEyeOff size={20} /> : <HiOutlineEye size={20} />}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

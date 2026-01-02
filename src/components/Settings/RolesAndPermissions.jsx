@@ -8,7 +8,6 @@ import { safeQuery } from "../../utils/supabaseHelpers";
 import { modules, defaultPermissions } from "../../utils/permissions";
 
 
-/** Componente para gestionar roles y permisos de usuarios */
 const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
   const [roles, setRoles] = useState([]);
   const [permissions, setPermissions] = useState({});
@@ -25,7 +24,12 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
   };
 
   const permissionLabels = {
-    view: "Ver",
+    view: "Ver / Principal",
+    search: "Búsqueda",
+    agenda: "Agenda",
+    waiting: "Lista Espera",
+    evolution: "Evolución",
+    documents: "Documentos",
     create: "Crear",
     edit: "Editar",
     delete: "Eliminar",
@@ -40,13 +44,11 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
   const fetchRolesAndPermissions = async () => {
     setLoading(true);
     try {
-      // Obtener roles únicos de la base de datos
       const { data: usersData, error } = await safeQuery(
         () => supabase
           .from("users")
           .select("role")
           .not("role", "is", null)
-        // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
       );
 
       if (error) throw error;
@@ -77,12 +79,10 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
         }
       }
 
-      // Intentar obtener permisos desde la base de datos
       const { data: permissionsData, error: permError } = await safeQuery(
         () => supabase
           .from("role_permissions")
           .select("*")
-        // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
       );
 
       if (permError || !permissionsData || permissionsData.length === 0) {
@@ -117,7 +117,7 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           const parsed = JSON.parse(savedPermissions);
           if (parsed && typeof parsed === "object") {
             setPermissions(parsed);
-            setInitialPermissions(JSON.parse(JSON.stringify(parsed))); // Deep copy
+            setInitialPermissions(JSON.parse(JSON.stringify(parsed)));
             const savedRoles = Object.keys(parsed);
             if (savedRoles.length > 0) {
               setRoles(savedRoles);
@@ -127,7 +127,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           } else {
             throw new Error("Invalid saved permissions");
           }
-          // Si falla, usar roles y permisos por defecto
           const defaultRoles = ["administrador", "optometra", "secretaria"];
           setRoles(defaultRoles);
           const defaultPerms = {};

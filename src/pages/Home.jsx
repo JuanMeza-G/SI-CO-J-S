@@ -3,7 +3,6 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom"
 import Sidebar from "../components/Sidebar"
 import { useAuth } from "../context/AuthContext"
 
-/** Layout principal de la aplicación con barra lateral y área de contenido */
 const Home = () => {
   const { permissions, loading } = useAuth();
   const location = useLocation();
@@ -13,19 +12,41 @@ const Home = () => {
   const tabs = [
     { id: "dashboard" },
     { id: "patients" },
+    { id: "patients-search" },
     { id: "appointments" },
+    { id: "appointments-agenda" },
+    { id: "appointments-waiting" },
     { id: "ehr" },
+    { id: "ehr-evolution" },
+    { id: "ehr-documents" },
     { id: "settings" },
   ];
 
   useEffect(() => {
     if (!loading && permissions) {
-      const currentAllowed = permissions[activeTab]?.view;
+      if (activeTab === 'dashboard') return;
+
+      const permissionMap = {
+        'patients': { module: 'patients', action: 'view' },
+        'patients-search': { module: 'patients', action: 'search' },
+        'appointments': { module: 'appointments', action: 'view' },
+        'appointments-agenda': { module: 'appointments', action: 'agenda' },
+        'appointments-waiting': { module: 'appointments', action: 'waiting' },
+        'ehr': { module: 'ehr', action: 'view' },
+        'ehr-evolution': { module: 'ehr', action: 'evolution' },
+        'ehr-documents': { module: 'ehr', action: 'documents' },
+        'settings': { module: 'settings', action: 'view' },
+      };
+
+      const perm = permissionMap[activeTab];
+      const currentAllowed = perm ? permissions[perm.module]?.[perm.action] : false;
 
       if (!currentAllowed) {
-        const firstAllowed = tabs.find(tab => permissions[tab.id]?.view);
+        const mainModules = ["dashboard", "patients", "appointments", "ehr", "settings"];
+        const firstAllowed = mainModules.find(id => permissions[id]?.view || id === 'dashboard');
+
         if (firstAllowed) {
-          navigate(`/home/${firstAllowed.id}`, { replace: true });
+          navigate(`/home/${firstAllowed}`, { replace: true });
         }
       }
     }

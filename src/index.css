@@ -7,9 +7,7 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* Variables CSS para modo oscuro sofisticado (estilo Vercel/Supabase) */
 :root {
-    /* Colores de modo oscuro - estilo Vercel/Supabase */
     --dark-bg-primary: #0a0a0a;
     --dark-bg-secondary: #111111;
     --dark-bg-tertiary: #1a1a1a;
@@ -21,10 +19,18 @@
     --dark-text-tertiary: #a3a3a3;
     --dark-hover: #1f1f1f;
     --dark-hover-subtle: #242424;
+
+    --toast-border-color: #d1d5db;
 }
 
-/* Estilos base para body y html */
-html, body {
+.dark {
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+    --toast-border-color: #404040;
+}
+
+html,
+body {
     margin: 0;
     padding: 0;
     background-color: #ffffff;
@@ -32,20 +38,12 @@ html, body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Aplicar colores de modo oscuro cuando la clase .dark está presente */
-.dark {
-    --tw-bg-opacity: 1;
-    --tw-text-opacity: 1;
-}
-
-/* Fondo oscuro para body y html en modo oscuro */
 html.dark,
 html.dark body {
     background-color: #0a0a0a;
     color: #f5f5f5;
 }
 
-/* Asegurar que el root también tenga el fondo correcto */
 #root {
     min-height: 100vh;
     background-color: #ffffff;
@@ -56,12 +54,10 @@ html.dark body {
     background-color: #0a0a0a;
 }
 
-/* Asegurar que no haya espacios sin cubrir */
 * {
     box-sizing: border-box;
 }
 
-/* Utilidades personalizadas para modo oscuro */
 .dark .bg-dark-primary {
     background-color: var(--dark-bg-primary);
 }
@@ -104,4 +100,38 @@ html.dark body {
 
 .dark .hover\:bg-dark-hover-subtle:hover {
     background-color: var(--dark-hover-subtle);
+}
+
+.my-toast {
+    background-color: #ffffff !important;
+    border: 2px solid var(--toast-border-color) !important;
+}
+
+.dark .my-toast {
+    background-color: #0a0a0a !important;
+    border-color: var(--toast-border-color) !important;
+}
+
+[data-sonner-toast].my-toast {
+    background: #ffffff !important;
+}
+
+.dark [data-sonner-toast].my-toast {
+    background: #0a0a0a !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] {
+    color: #22c55e !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+    color: #ef4444 !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-icon] {
+    color: #3b82f6 !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-icon] {
+    color: #f59e0b !important;
 }

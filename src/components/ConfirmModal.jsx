@@ -3,7 +3,6 @@ import Modal from "./Modal";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 
 
-/** Modal de confirmación para acciones destructivas o importantes */
 const ConfirmModal = ({
   isOpen,
   onClose,

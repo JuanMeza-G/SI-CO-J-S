@@ -1,16 +1,16 @@
 import { FcManager, FcSettings } from "react-icons/fc";
 import { useState } from "react";
 import { MdOutlineKeyboardBackspace } from "react-icons/md";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AdminForm from "../components/AdminForm";
 import OperativeForm from "../components/OperativeForm";
 
-/** Página de inicio de sesión con selección de rol */
 const Login = () => {
   const [selectedRole, setSelectedRole] = useState("");
+  const [searchParams] = useSearchParams();
 
-  const { user, loading } = useAuth();
+  const { user, loading, isVerifyingAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -23,7 +23,7 @@ const Login = () => {
     );
   }
 
-  if (user) {
+  if (user && !isVerifyingAdmin) {
     return <Navigate to="/home" replace />;
   }
 

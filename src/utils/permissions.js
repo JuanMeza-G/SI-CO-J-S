@@ -1,4 +1,3 @@
-/** Módulos del sistema y sus permisos */
 export const modules = [
     {
         id: "dashboard",
@@ -10,49 +9,48 @@ export const modules = [
         id: "patients",
         name: "Pacientes",
         description: "Gestión de pacientes",
-        permissions: ["view"],
+        permissions: ["view", "search"],
     },
     {
         id: "appointments",
         name: "Citas",
         description: "Gestión de citas médicas",
-        permissions: ["view"],
+        permissions: ["view", "agenda", "waiting"],
     },
     {
         id: "ehr",
-        name: "Historial Clínico (HCE)",
+        name: "Historia Clínica (HCE)",
         description: "Registros médicos electrónicos",
-        permissions: ["view"],
+        permissions: ["view", "evolution", "documents"],
     },
     {
         id: "settings",
         name: "Configuración",
-        description: "Ajustes del sistema",
+        description: "Ajustes del sistema y usuarios",
         permissions: ["view"],
     },
 ];
 
-/** Permisos por defecto para cada rol */
 export const defaultPermissions = {
     administrador: {
         dashboard: { view: true },
-        patients: { view: true },
-        appointments: { view: true },
-        ehr: { view: true },
+        patients: { view: true, search: true },
+        appointments: { view: true, agenda: true, waiting: true },
+        ehr: { view: true, evolution: true, documents: true },
         settings: { view: true },
     },
     optometra: {
         dashboard: { view: true },
-        patients: { view: true },
-        appointments: { view: true },
-        ehr: { view: true },
+        patients: { view: true, search: true },
+        appointments: { view: true, agenda: true, waiting: true },
+        ehr: { view: true, evolution: true, documents: true },
         settings: { view: false },
     },
     secretaria: {
         dashboard: { view: true },
-        patients: { view: true },
-        appointments: { view: true },
-        ehr: { view: true },
+        patients: { view: true, search: true },
+        appointments: { view: true, agenda: true, waiting: true },
+        ehr: { view: true, evolution: false, documents: true },
         settings: { view: false },
     },
 };

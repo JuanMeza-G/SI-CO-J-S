@@ -1,7 +1,6 @@
 import React from "react";
 
 
-/** Componente de carga visual (spinner) */
 const Loader = ({ fullScreen = false, size = "medium", text }) => {
   const sizeClasses = {
     small: "w-5 h-5 border-2",

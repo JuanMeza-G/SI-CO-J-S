@@ -20,7 +20,6 @@ import { IoArrowBackSharp } from "react-icons/io5";
 import { FaPlus, FaSave } from "react-icons/fa";
 import { useRef } from "react";
 
-/** Página de configuración del sistema (Usuarios, Servicios, Roles, etc.) */
 const Settings = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [activeView, setActiveView] = useState("menu");
@@ -29,6 +28,12 @@ const Settings = () => {
   const servicesRef = useRef(null);
   const clinicInfoRef = useRef(null);
   const rolesAndPermissionsRef = useRef(null);
+  const [userListKey, setUserListKey] = useState(0);
+
+  const handleRegisterSuccess = () => {
+    setIsRegisterModalOpen(false);
+    setUserListKey((prev) => prev + 1);
+  };
 
   if (activeView !== "menu") {
     return (
@@ -38,7 +43,7 @@ const Settings = () => {
           onClose={() => setIsRegisterModalOpen(false)}
           title="Registrar nuevo usuario"
         >
-          <UserRegister onSuccess={() => setIsRegisterModalOpen(false)} />
+          <UserRegister onSuccess={handleRegisterSuccess} />
         </Modal>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
           <button
@@ -93,7 +98,7 @@ const Settings = () => {
           )}
         </div>
         <div className="">
-          {activeView === "userManagement" && <UserManagement />}
+          {activeView === "userManagement" && <UserManagement key={userListKey} />}
           {activeView === "clinicInfo" && (
             <ClinicInfo
               ref={clinicInfoRef}
@@ -121,7 +126,7 @@ const Settings = () => {
         onClose={() => setIsRegisterModalOpen(false)}
         title="Registrar nuevo usuario"
       >
-        <UserRegister onSuccess={() => setIsRegisterModalOpen(false)} />
+        <UserRegister onSuccess={handleRegisterSuccess} />
       </Modal>
 
       <div

@@ -1,4 +1,3 @@
-/** Envoltorio con timeout para promesas */
 export const withTimeout = (promise, timeoutMs = 30000) => {
   let timeoutId;
   let isResolved = false;
@@ -46,7 +45,6 @@ export const withTimeout = (promise, timeoutMs = 30000) => {
   });
 };
 
-/** Ejecuta una consulta segura con reintentos y manejo de errores */
 export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTotalTimeMs = 60000) => {
   const startTime = Date.now();
   let lastError;
@@ -74,7 +72,7 @@ export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTota
 
       if (result && result.error) {
         if (
-          result.error.code === 'PGRST301' || // JWT Expired
+          result.error.code === 'PGRST301' ||
           result.error.message?.includes('JWT expired') ||
           result.error.status === 401 ||
           result.error.status === 403
@@ -88,7 +86,6 @@ export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTota
       return result;
     } catch (error) {
       lastError = error;
-
 
       if (
         error.code === 'PGRST301' ||
@@ -106,7 +103,6 @@ export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTota
         error.name === 'NetworkError' ||
         error.message?.includes('Failed to fetch');
 
-
       if (attempt === retries) {
         if (isNetwork) {
           throw new Error('Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.');
@@ -123,18 +119,13 @@ export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTota
 
       const delay = Math.min(1000 * Math.pow(2, attempt), 2000);
 
-
       const elapsedTime = Date.now() - startTime;
       const remainingTime = maxTotalTimeMs - elapsedTime;
       if (remainingTime <= delay + timeoutMs) {
-
         throw new Error('La operación ha tardado demasiado tiempo. Por favor, intenta nuevamente más tarde.');
       }
 
-
-      if (attempt === 0 || import.meta.env.DEV) {
-        console.warn(`Supabase query failed (attempt ${attempt + 1}/${retries + 1}). Retrying in ${delay}ms...`, error.message);
-      }
+      console.warn(`Supabase query failed (attempt ${attempt + 1}/${retries + 1}). Retrying in ${delay}ms...`, error.message);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }

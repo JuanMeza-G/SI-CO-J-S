@@ -1,6 +1,5 @@
 import React from 'react';
 
-/** Página de historial clínico electrónico */
 const EHR = () => {
     return (
         <div className="p-6">

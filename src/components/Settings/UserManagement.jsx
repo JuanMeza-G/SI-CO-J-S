@@ -16,7 +16,6 @@ import ConfirmModal from "../ConfirmModal";
 import { safeQuery } from "../../utils/supabaseHelpers";
 
 
-/** Componente para gestión de usuarios y sus estados/roles */
 const UserManagement = () => {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
@@ -33,18 +32,17 @@ const UserManagement = () => {
     try {
       const { data, error } = await safeQuery(
         () => supabase.from("users").select("*")
-        // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
       );
 
       if (error) {
-        toast.error(`Error cargando usuarios: ${error.message || 'Error desconocido'}`);
+        toast.error("No se pudieron cargar los usuarios. Por favor, verifica tu conexión.");
         setUsers([]);
         return;
       }
       setUsers(data || []);
     } catch (error) {
       console.error("Error fetching users catch block:", error);
-      toast.error(error.message || "Error cargando usuarios. Por favor, intenta nuevamente.");
+      toast.error("Ocurrió un error al intentar cargar los usuarios.");
       setUsers([]);
     } finally {
       setLoading(false);
@@ -52,6 +50,12 @@ const UserManagement = () => {
   };
 
   const handleRoleChange = async (userId, newRole) => {
+    const userToUpdate = users.find((u) => u.id === userId);
+    if (userToUpdate?.provider === "google") {
+      toast.error("No se puede editar el rol de una cuenta de Google");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("users")

@@ -26,7 +26,6 @@ const defaultSchedule = {
 };
 
 
-/** Componente para gestionar la información general de la clínica y horarios */
 const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
   const [loading, setLoading] = useState(false);
   const [schedule, setSchedule] = useState(defaultSchedule);
@@ -50,7 +49,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
           .from("clinic_info")
           .select("*")
           .single()
-        // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
       );
 
       if (data) {

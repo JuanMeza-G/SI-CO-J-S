@@ -9,7 +9,6 @@ import ConfirmModal from "../ConfirmModal";
 import { safeQuery } from "../../utils/supabaseHelpers";
 
 
-/** Componente para gestión CRUD de servicios */
 const ServicesManagement = forwardRef((props, ref) => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,17 +39,16 @@ const ServicesManagement = forwardRef((props, ref) => {
           .from("services")
           .select("*")
           .order("name")
-        // Usar valores por defecto: 20s timeout, 1 reintento, 60s máximo total
       );
 
       if (error) {
-        toast.error(error.message || "Error al cargar servicios. Por favor, intenta nuevamente.");
+        toast.error("No se pudieron cargar los servicios. Por favor, verifica tu conexión.");
         return;
       }
       setServices(data || []);
     } catch (error) {
       console.error(error);
-      toast.error(error.message || "Error al cargar servicios. Por favor, intenta nuevamente.");
+      toast.error("Ocurrió un error al intentar cargar los servicios.");
       setServices([]);
     } finally {
       setLoading(false);
@@ -324,8 +322,8 @@ const ServicesManagement = forwardRef((props, ref) => {
             <input
               {...register("name", { required: "El nombre es obligatorio" })}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all appearance-none ${errors.name
-                  ? "border-red-500 focus:ring-red-500 bg-red-50"
-                  : "border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
+                ? "border-red-500 focus:ring-red-500"
+                : "border-gray-300 dark:border-[#262626] bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5] focus:ring-blue-500 focus:border-blue-500"
                 }`}
               placeholder="Ej: Consulta de Optometría"
             />

@@ -3,8 +3,14 @@ import Login from "../pages/Login.jsx"
 import Home from "../pages/Home.jsx"
 import Dashboard from "../pages/Dashboard.jsx"
 import Patients from "../pages/Patients.jsx"
+import PatientsSearch from "../components/Patients/PatientsSearch.jsx"
 import Appointments from "../pages/Appointments.jsx"
+import AppointmentsNew from "../components/Appointments/AppointmentsNew.jsx"
+import AppointmentsAgenda from "../components/Appointments/AppointmentsAgenda.jsx"
+import AppointmentsWaiting from "../components/Appointments/AppointmentsWaiting.jsx"
 import EHR from "../pages/EHR.jsx"
+import EHREvolution from "../components/EHR/EHREvolution.jsx"
+import EHRDocuments from "../components/EHR/EHRDocuments.jsx"
 import Settings from "../pages/Settings.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
 
@@ -33,12 +39,36 @@ const router = createBrowserRouter([
             element: <Patients />
           },
           {
+            path: "patients-search",
+            element: <PatientsSearch />
+          },
+          {
             path: "appointments",
             element: <Appointments />
           },
           {
+            path: "appointments-new",
+            element: <AppointmentsNew />
+          },
+          {
+            path: "appointments-agenda",
+            element: <AppointmentsAgenda />
+          },
+          {
+            path: "appointments-waiting",
+            element: <AppointmentsWaiting />
+          },
+          {
             path: "ehr",
             element: <EHR />
+          },
+          {
+            path: "ehr-evolution",
+            element: <EHREvolution />
+          },
+          {
+            path: "ehr-documents",
+            element: <EHRDocuments />
           },
           {
             path: "settings",
@@ -50,7 +80,6 @@ const router = createBrowserRouter([
   },
 ]);
 
-/** Componente definidor de rutas de la aplicación */
 const MyRoutes = () => {
   return <RouterProvider router={router} />;
 };

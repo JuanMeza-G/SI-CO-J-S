@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 
-/** Hook personalizado para gestionar el tema (claro/oscuro) */
 const getSystemTheme = () => {
     if (typeof window !== 'undefined' && window.matchMedia) {
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

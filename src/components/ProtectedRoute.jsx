@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import Loader from "./Loader";
 
 
-/** Componente de ruta protegida que verifica la autenticación del usuario */
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
   const [minLoading, setMinLoading] = React.useState(true);

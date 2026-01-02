@@ -48,7 +48,6 @@ const quickQuery = async (
   }
 };
 
-/** Proveedor de contexto de autenticación */
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
@@ -56,6 +55,7 @@ export const AuthProvider = ({ children }) => {
   const [permissions, setPermissions] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isVerifyingAdmin, setIsVerifyingAdmin] = useState(false);
   const [networkStatus, setNetworkStatus] = useState(
     navigator.onLine ? "online" : "offline"
   );
@@ -154,7 +154,6 @@ export const AuthProvider = ({ children }) => {
           try {
             return JSON.parse(cachedProfile);
           } catch (e) {
-            // Ignorar error de parseo
           }
         }
         return null;
@@ -195,7 +194,6 @@ export const AuthProvider = ({ children }) => {
               return parsed.data;
             }
           } catch (e) {
-            // Ignorar error de parseo
           }
         }
 
@@ -249,77 +247,96 @@ export const AuthProvider = ({ children }) => {
 
       if (isMounted.current) {
         setSession(authSession);
-        setUser(authSession.user);
-        setLoading(false);
 
-        setTimeout(async () => {
-          if (!isMounted.current) return;
+        try {
+          const profile = await fetchUserProfileQuick(authSession.user.id);
 
-          try {
-            const profile = await fetchUserProfileQuick(authSession.user.id);
-
-            if (!isMounted.current) return;
-
-            if (profile) {
-              const role = profile.role || "invitado";
-              const perms = loadPermissionsFromCache(role);
-
-              setUserProfile(profile);
-              setUserRole(role);
-              setPermissions(perms);
-
-
-              const urlParams = new URLSearchParams(window.location.search);
-              const isAdminLogin = urlParams.get("admin_login") === "true";
-
-              fetchPermissionsFromDB(role).then(dbPerms => {
-                if (isMounted.current && dbPerms) {
-                  setPermissions(dbPerms);
-                }
-              });
-
-              if (isAdminLogin) {
-                if (role !== "administrador") {
-                  toast.error(
-                    "Acceso denegado. Se requieren permisos de administrador."
-                  );
-                  await supabase.auth.signOut();
-
-                  urlParams.delete("admin_login");
-                  const newUrl = window.location.pathname;
-                  window.history.replaceState({}, "", newUrl);
-
-                  setSession(null);
-                  setUser(null);
-                  setUserProfile(null);
-                  setUserRole(null);
-                  setPermissions(defaultPermissions.guest || {});
-                } else {
-                  urlParams.delete("admin_login");
-                  const newUrl = window.location.pathname;
-                  window.history.replaceState({}, "", newUrl);
-                }
-              }
-
-              if (profile.is_active === false) {
-                toast.error("Tu cuenta está desactivada.");
-                await supabase.auth.signOut();
-
-                setSession(null);
-                setUser(null);
-                setUserProfile(null);
-                setUserRole(null);
-                setPermissions(defaultPermissions.guest || {});
-              }
-            }
-          } catch (error) {
-            console.warn(
-              "Error en verificación en segundo plano:",
-              error.message
-            );
-            // Ignorar errores en verificación en segundo plano
+          if (!isMounted.current) {
+            clearTimeout(globalTimeout);
+            return;
           }
-        }, 100);
+
+          if (profile) {
+            if (profile.is_active === false) {
+              await supabase.auth.signOut();
+
+              setSession(null);
+              setUser(null);
+              setUserProfile(null);
+              setUserRole(null);
+              setPermissions(defaultPermissions.guest || {});
+              setLoading(false);
+              clearTimeout(globalTimeout);
+              return;
+            }
+
+            const role = profile.role || "invitado";
+            const perms = loadPermissionsFromCache(role);
+
+            const urlParams = new URL(window.location.href).searchParams;
+            const isAdminLogin = urlParams.get("admin_login") === "true";
+
+            if (isAdminLogin) {
+              setIsVerifyingAdmin(true);
+            }
+
+            if (isAdminLogin && role !== "administrador") {
+              toast.error("Acceso denegado. Se requieren permisos de administrador.");
+              setPermissions(defaultPermissions.guest || {});
+              setLoading(false);
+              setIsVerifyingAdmin(false);
+              clearTimeout(globalTimeout);
+              return;
+            }
+
+            if (isAdminLogin) {
+              setIsVerifyingAdmin(false);
+              const url = new URL(window.location.href);
+              url.searchParams.delete("admin_login");
+              window.history.replaceState({}, "", url.pathname);
+            }
+
+            setUserProfile(profile);
+            setUserRole(role);
+            setPermissions(perms);
+            setUser(authSession.user);
+
+            const currentProvider = authSession.user.app_metadata.provider;
+            if (currentProvider && profile.provider !== currentProvider) {
+              supabase
+                .from("users")
+                .update({ provider: currentProvider })
+                .eq("id", profile.id)
+                .then(({ error }) => {
+                  if (error) console.warn("Error sincronizando provider:", error.message);
+                });
+            }
+
+            fetchPermissionsFromDB(role).then(dbPerms => {
+              if (isMounted.current && dbPerms) {
+                setPermissions(dbPerms);
+              }
+            });
+          } else {
+
+            await supabase.auth.signOut();
+
+            setSession(null);
+            setUser(null);
+            setUserProfile(null);
+            setUserRole(null);
+            setPermissions(defaultPermissions.guest || {});
+            setLoading(false);
+            setIsVerifyingAdmin(false);
+            clearTimeout(globalTimeout);
+            return;
+          }
+        } catch (error) {
+          console.warn("Error verificando perfil en inicio:", error.message);
+          setUser(authSession.user);
+        }
+
+        setLoading(false);
       }
 
       clearTimeout(globalTimeout);
@@ -369,26 +386,83 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        setSession(authSession);
-        setUser(authSession.user);
-        setLoading(false);
-        setTimeout(async () => {
-          if (!isMounted.current) return;
-
+        (async () => {
           try {
             const profile = await fetchUserProfileQuick(authSession.user.id);
 
-            if (!isMounted.current || !profile) return;
+            if (!isMounted.current) return;
 
-            const role = profile.role || "invitado";
-            const perms = loadPermissionsFromCache(role);
+            if (profile) {
+              if (profile.is_active === false) {
+                await supabase.auth.signOut();
+                toast.error("Tu cuenta está desactivada. Contacta al administrador.");
+                setSession(null);
+                setUser(null);
+                setUserProfile(null);
+                setUserRole(null);
+                setPermissions(defaultPermissions.guest || {});
+                setLoading(false);
+                return;
+              }
 
-            setUserProfile(profile);
-            setUserRole(role);
-            setPermissions(perms);
+              const role = profile.role || "invitado";
+              const perms = loadPermissionsFromCache(role);
 
-            if (profile.is_active === false) {
-              toast.error("Tu cuenta está desactivada.");
+              const urlParams = new URL(window.location.href).searchParams;
+              const isAdminLogin = urlParams.get("admin_login") === "true";
+
+              if (isAdminLogin) {
+                setIsVerifyingAdmin(true);
+              }
+
+              if (isAdminLogin && role !== "administrador") {
+                toast.error("Acceso denegado. Se requieren permisos de administrador.");
+                await supabase.auth.signOut();
+
+                const url = new URL(window.location.href);
+                url.searchParams.delete("admin_login");
+                window.history.replaceState({}, "", url.pathname);
+
+                setSession(null);
+                setUser(null);
+                setUserProfile(null);
+                setUserRole(null);
+                setPermissions(defaultPermissions.guest || {});
+                setLoading(false);
+                setIsVerifyingAdmin(false);
+                return;
+              }
+
+              setSession(authSession);
+              setUser(authSession.user);
+              setUserProfile(profile);
+              setUserRole(role);
+              setPermissions(perms);
+
+              if (isAdminLogin) {
+                setIsVerifyingAdmin(false);
+                const url = new URL(window.location.href);
+                url.searchParams.delete("admin_login");
+                window.history.replaceState({}, "", url.pathname);
+              }
+
+              const currentProvider = authSession.user.app_metadata.provider;
+              if (currentProvider && profile.provider !== currentProvider) {
+                supabase
+                  .from("users")
+                  .update({ provider: currentProvider })
+                  .eq("id", profile.id)
+                  .then(({ error }) => {
+                    if (error) console.warn("Error sincronizando provider en auth change:", error.message);
+                  });
+              }
+
+              if (authSession.user.app_metadata.provider !== "email") {
+                toast.success("Sesión iniciada correctamente");
+              }
+            } else {
+              toast.error("Usuario sin perfil en la base de datos. Debe ser registrado por un administrador.");
+
               await supabase.auth.signOut();
 
               setSession(null);
@@ -396,14 +470,15 @@ export const AuthProvider = ({ children }) => {
               setUserProfile(null);
               setUserRole(null);
               setPermissions(defaultPermissions.guest || {});
+              setIsVerifyingAdmin(false);
             }
           } catch (error) {
-            console.warn(
-              "Error cargando perfil en auth change:",
-              error.message
-            );
+            console.warn("Error cargando perfil en auth change:", error.message);
+            setUser(authSession.user);
           }
-        }, 100);
+          setLoading(false);
+          setIsVerifyingAdmin(false);
+        })();
       }
     },
     [fetchUserProfileQuick, loadPermissionsFromCache]
@@ -435,6 +510,7 @@ export const AuthProvider = ({ children }) => {
     permissions,
     userProfile,
     loading,
+    isVerifyingAdmin,
     networkStatus,
     signOut: useCallback(async () => {
       try {
