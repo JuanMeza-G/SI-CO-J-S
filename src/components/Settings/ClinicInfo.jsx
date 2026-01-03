@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import Loader from "../Loader";
 import { safeQuery } from "../../utils/supabaseHelpers";
-
+import { FiInfo } from "react-icons/fi";
 const daysMap = {
   monday: "Lunes",
   tuesday: "Martes",
@@ -14,7 +14,6 @@ const daysMap = {
   saturday: "Sábado",
   sunday: "Domingo",
 };
-
 const defaultSchedule = {
   monday: { enabled: true, start: "08:00", end: "18:00" },
   tuesday: { enabled: true, start: "08:00", end: "18:00" },
@@ -24,8 +23,6 @@ const defaultSchedule = {
   saturday: { enabled: false, start: "09:00", end: "13:00" },
   sunday: { enabled: false, start: "09:00", end: "13:00" },
 };
-
-
 const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
   const [loading, setLoading] = useState(false);
   const [schedule, setSchedule] = useState(defaultSchedule);
@@ -36,11 +33,9 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
     reset,
     formState: { isDirty },
   } = useForm();
-
   useEffect(() => {
     fetchInfo();
   }, []);
-
   const fetchInfo = async () => {
     try {
       setLoading(true);
@@ -50,14 +45,12 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
           .select("*")
           .single()
       );
-
       if (data) {
         const formData = {};
         Object.keys(data).forEach((key) => {
           if (key !== "business_hours") formData[key] = data[key];
         });
         reset(formData);
-
         if (data.business_hours) {
           setSchedule((prev) => ({ ...prev, ...data.business_hours }));
           setInitialSchedule((prev) => ({ ...prev, ...data.business_hours }));
@@ -67,12 +60,10 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
       }
     } catch (error) {
       console.error("Error fetching clinic info:", error);
-
     } finally {
       setLoading(false);
     }
   };
-
   const handleScheduleChange = (day, field, value) => {
     setSchedule((prev) => ({
       ...prev,
@@ -82,7 +73,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
       },
     }));
   };
-
   useEffect(() => {
     const isScheduleChanged =
       JSON.stringify(schedule) !== JSON.stringify(initialSchedule);
@@ -90,23 +80,18 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
       onDirtyChange(isDirty || isScheduleChanged);
     }
   }, [isDirty, schedule, initialSchedule, onDirtyChange]);
-
   const onSubmit = async (formData) => {
     try {
       setLoading(true);
-
       const { id, ...dataToSave } = formData;
-
       const payload = {
         ...dataToSave,
         business_hours: schedule,
       };
-
       const { data: existing } = await supabase
         .from("clinic_info")
         .select("id")
         .single();
-
       if (existing) {
         const { error } = await supabase
           .from("clinic_info")
@@ -117,7 +102,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
         const { error } = await supabase.from("clinic_info").insert([payload]);
         if (error) throw error;
       }
-
       toast.success("Información actualizada correctamente");
       reset(dataToSave);
       setInitialSchedule(schedule);
@@ -128,15 +112,12 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
       setLoading(false);
     }
   };
-
   useImperativeHandle(ref, () => ({
     submitForm: () => {
       handleSubmit(onSubmit)();
     },
   }));
-
   if (loading) return <Loader text="Cargando información..." />;
-
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -158,7 +139,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                     placeholder="Ej: Centro Óptico Visual"
                   />
                 </div>
-
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Eslogan / Subtítulo
@@ -170,7 +150,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                     placeholder="Ej: Tu visión, nuestro compromiso"
                   />
                 </div>
-
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Dirección
@@ -182,7 +161,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                     placeholder="Dirección completa"
                   />
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
@@ -195,7 +173,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                       placeholder="+57 300 123 4567"
                     />
                   </div>
-
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                       Correo Electrónico
@@ -210,7 +187,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                 </div>
               </div>
             </div>
-
             <div className="w-full lg:w-1/2">
               <div className="space-y-4">
                 <h3 className="text-base sm:text-[17px] font-semibold text-gray-800 dark:text-[#e5e5e5]">
@@ -248,7 +224,6 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
                             {label}
                           </span>
                         </div>
-
                         {schedule[key]?.enabled ? (
                           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                             <input
@@ -292,5 +267,4 @@ const ClinicInfo = forwardRef(({ onDirtyChange }, ref) => {
     </div>
   );
 });
-
 export default ClinicInfo;

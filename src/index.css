@@ -1,12 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap');
 @import "tailwindcss";
-
 @variant dark (&:where(.dark, .dark *));
-
 * {
     font-family: 'Poppins', sans-serif;
 }
-
 :root {
     --dark-bg-primary: #0a0a0a;
     --dark-bg-secondary: #111111;
@@ -19,16 +16,13 @@
     --dark-text-tertiary: #a3a3a3;
     --dark-hover: #1f1f1f;
     --dark-hover-subtle: #242424;
-
     --toast-border-color: #d1d5db;
 }
-
 .dark {
     --tw-bg-opacity: 1;
     --tw-text-opacity: 1;
     --toast-border-color: #404040;
 }
-
 html,
 body {
     margin: 0;
@@ -37,101 +31,78 @@ body {
     color: #000000;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
-
 html.dark,
 html.dark body {
     background-color: #0a0a0a;
     color: #f5f5f5;
 }
-
 #root {
     min-height: 100vh;
     background-color: #ffffff;
     transition: background-color 0.3s ease;
 }
-
 .dark #root {
     background-color: #0a0a0a;
 }
-
 * {
     box-sizing: border-box;
 }
-
 .dark .bg-dark-primary {
     background-color: var(--dark-bg-primary);
 }
-
 .dark .bg-dark-secondary {
     background-color: var(--dark-bg-secondary);
 }
-
 .dark .bg-dark-tertiary {
     background-color: var(--dark-bg-tertiary);
 }
-
 .dark .bg-dark-elevated {
     background-color: var(--dark-bg-elevated);
 }
-
 .dark .border-dark {
     border-color: var(--dark-border);
 }
-
 .dark .border-dark-subtle {
     border-color: var(--dark-border-subtle);
 }
-
 .dark .text-dark-primary {
     color: var(--dark-text-primary);
 }
-
 .dark .text-dark-secondary {
     color: var(--dark-text-secondary);
 }
-
 .dark .text-dark-tertiary {
     color: var(--dark-text-tertiary);
 }
-
 .dark .hover\:bg-dark-hover:hover {
     background-color: var(--dark-hover);
 }
-
 .dark .hover\:bg-dark-hover-subtle:hover {
     background-color: var(--dark-hover-subtle);
 }
-
 .my-toast {
     background-color: #ffffff !important;
     border: 2px solid var(--toast-border-color) !important;
 }
-
 .dark .my-toast {
     background-color: #0a0a0a !important;
     border-color: var(--toast-border-color) !important;
 }
-
 [data-sonner-toast].my-toast {
     background: #ffffff !important;
 }
-
 .dark [data-sonner-toast].my-toast {
     background: #0a0a0a !important;
 }
-
 [data-sonner-toast][data-type="success"] [data-icon] {
     color: #22c55e !important;
 }
-
 [data-sonner-toast][data-type="error"] [data-icon] {
     color: #ef4444 !important;
 }
-
 [data-sonner-toast][data-type="info"] [data-icon] {
     color: #3b82f6 !important;
 }
-
 [data-sonner-toast][data-type="warning"] [data-icon] {
     color: #f59e0b !important;
 }

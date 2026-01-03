@@ -1,8 +1,6 @@
 export const withTimeout = (promise, timeoutMs = 30000) => {
   let timeoutId;
   let isResolved = false;
-
-
   const wrappedPromise = Promise.resolve(promise).then(
     (result) => {
       if (!isResolved) {
@@ -25,7 +23,6 @@ export const withTimeout = (promise, timeoutMs = 30000) => {
       throw error;
     }
   );
-
   const timeoutPromise = new Promise((_, reject) => {
     timeoutId = setTimeout(() => {
       if (!isResolved) {
@@ -35,20 +32,16 @@ export const withTimeout = (promise, timeoutMs = 30000) => {
       }
     }, timeoutMs);
   });
-
   return Promise.race([wrappedPromise, timeoutPromise]).finally(() => {
-
     if (timeoutId) {
       clearTimeout(timeoutId);
       timeoutId = null;
     }
   });
 };
-
 export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTotalTimeMs = 60000) => {
   const startTime = Date.now();
   let lastError;
-
   for (let attempt = 0; attempt <= retries; attempt++) {
     const elapsedTime = Date.now() - startTime;
     if (elapsedTime >= maxTotalTimeMs) {
@@ -56,20 +49,15 @@ export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTota
       timeoutError.isTimeout = true;
       throw timeoutError;
     }
-
     try {
       const remainingTime = maxTotalTimeMs - elapsedTime;
       const currentTimeout = Math.min(timeoutMs, remainingTime);
-
       if (currentTimeout <= 0) {
         const timeoutError = new Error('La operación ha tardado demasiado tiempo. Por favor, intenta nuevamente más tarde.');
         timeoutError.isTimeout = true;
         throw timeoutError;
       }
-
       const result = await withTimeout(queryFn(), currentTimeout);
-
-
       if (result && result.error) {
         if (
           result.error.code === 'PGRST301' ||
@@ -82,11 +70,9 @@ export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTota
         }
         return result;
       }
-
       return result;
     } catch (error) {
       lastError = error;
-
       if (
         error.code === 'PGRST301' ||
         error.message?.includes('JWT expired') ||
@@ -96,13 +82,11 @@ export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTota
         window.dispatchEvent(new CustomEvent('auth:unauthorized'));
         throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       }
-
       const isTimeout = error.message?.includes('tiempo de espera') || error.isTimeout;
       const isNetwork = error.message?.includes('fetch') ||
         error.message?.includes('network') ||
         error.name === 'NetworkError' ||
         error.message?.includes('Failed to fetch');
-
       if (attempt === retries) {
         if (isNetwork) {
           throw new Error('Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.');
@@ -112,24 +96,18 @@ export const safeQuery = async (queryFn, timeoutMs = 30000, retries = 0, maxTota
         }
         throw error;
       }
-
       if (!isTimeout && !isNetwork) {
         throw error;
       }
-
       const delay = Math.min(1000 * Math.pow(2, attempt), 2000);
-
       const elapsedTime = Date.now() - startTime;
       const remainingTime = maxTotalTimeMs - elapsedTime;
       if (remainingTime <= delay + timeoutMs) {
         throw new Error('La operación ha tardado demasiado tiempo. Por favor, intenta nuevamente más tarde.');
       }
-
       console.warn(`Supabase query failed (attempt ${attempt + 1}/${retries + 1}). Retrying in ${delay}ms...`, error.message);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-
   throw lastError || new Error('Error desconocido al ejecutar la consulta.');
 };
-

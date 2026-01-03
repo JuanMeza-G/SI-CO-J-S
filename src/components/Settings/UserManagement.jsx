@@ -9,31 +9,27 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
+import { FiUsers } from "react-icons/fi";
 import { MdEmail } from "react-icons/md";
 import Loader from "../Loader";
 import { useAuth } from "../../context/AuthContext";
 import ConfirmModal from "../ConfirmModal";
 import { safeQuery } from "../../utils/supabaseHelpers";
-
-
 const UserManagement = () => {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toggleModalOpen, setToggleModalOpen] = useState(false);
   const [userToToggle, setUserToToggle] = useState(null);
-
   useEffect(() => {
     fetchUsers();
   }, []);
-
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const { data, error } = await safeQuery(
         () => supabase.from("users").select("*")
       );
-
       if (error) {
         toast.error("No se pudieron cargar los usuarios. Por favor, verifica tu conexión.");
         setUsers([]);
@@ -48,22 +44,18 @@ const UserManagement = () => {
       setLoading(false);
     }
   };
-
   const handleRoleChange = async (userId, newRole) => {
     const userToUpdate = users.find((u) => u.id === userId);
     if (userToUpdate?.provider === "google") {
       toast.error("No se puede editar el rol de una cuenta de Google");
       return;
     }
-
     try {
       const { error } = await supabase
         .from("users")
         .update({ role: newRole })
         .eq("id", userId);
-
       if (error) throw error;
-
       setUsers(
         users.map((user) =>
           user.id === userId ? { ...user, role: newRole } : user
@@ -75,15 +67,12 @@ const UserManagement = () => {
       toast.error("Error al actualizar el rol");
     }
   };
-
   const confirmToggleUser = (user) => {
     setUserToToggle(user);
     setToggleModalOpen(true);
   };
-
   const handleToggleUser = async () => {
     if (!userToToggle) return;
-
     try {
       const currentStatus = userToToggle.is_active ?? true;
       const newStatus = !currentStatus;
@@ -91,9 +80,7 @@ const UserManagement = () => {
         .from("users")
         .update({ is_active: newStatus })
         .eq("id", userToToggle.id);
-
       if (error) throw error;
-
       setUsers(
         users.map((user) =>
           user.id === userToToggle.id ? { ...user, is_active: newStatus } : user
@@ -110,7 +97,6 @@ const UserManagement = () => {
       setUserToToggle(null);
     }
   };
-
   const getRoleBadgeColor = (role) => {
     switch (role?.toLowerCase()) {
       case "administrador":
@@ -123,11 +109,9 @@ const UserManagement = () => {
         return "bg-gray-50 text-gray-600 dark:bg-[#1a1a1a] dark:text-[#a3a3a3] border-gray-200 dark:border-[#262626]";
     }
   };
-
   if (loading) {
     return <Loader text="Cargando usuarios..." />;
   }
-
   return (
     <div className="flex flex-col gap-6">
       <div className="hidden md:block overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
@@ -191,7 +175,7 @@ const UserManagement = () => {
                           </span>
                           {currentUser?.id === user.id && (
                             <div
-                              className="w-2.5 h-2.5 rounded-full bg-green-500 border border-white dark:border-[#0a0a0a] shadow-sm"
+                              className="w-2.5 h-2.5 rounded-full bg-green-500 border border-white dark:border-[#0a0a0a]"
                               title="Sesión actual"
                             ></div>
                           )}
@@ -302,7 +286,6 @@ const UserManagement = () => {
           </tbody>
         </table>
       </div>
-
       <div className="md:hidden flex flex-col gap-4">
         {users.length === 0 ? (
           <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-8">
@@ -338,7 +321,7 @@ const UserManagement = () => {
                       </span>
                       {currentUser?.id === user.id && (
                         <div
-                          className="w-2.5 h-2.5 rounded-full bg-green-500 border border-white dark:border-[#0a0a0a] shadow-sm"
+                          className="w-2.5 h-2.5 rounded-full bg-green-500 border border-white dark:border-[#0a0a0a]"
                           title="Sesión actual"
                         ></div>
                       )}
@@ -348,7 +331,6 @@ const UserManagement = () => {
                     </span>
                   </div>
                 </div>
-
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-medium text-gray-700 dark:text-[#a3a3a3]">
                     Rol
@@ -385,7 +367,6 @@ const UserManagement = () => {
                       )}
                   </div>
                 </div>
-
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex flex-wrap gap-2">
                     {user.provider === "google" && (
@@ -414,7 +395,6 @@ const UserManagement = () => {
                       </div>
                     )}
                   </div>
-
                   <div className="flex items-center gap-3">
                     {(user.is_active ?? true) !== false ? (
                       <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 border border-green-200 dark:border-green-800">
@@ -449,7 +429,6 @@ const UserManagement = () => {
           ))
         )}
       </div>
-
       <ConfirmModal
         isOpen={toggleModalOpen}
         onClose={() => setToggleModalOpen(false)}
@@ -473,5 +452,4 @@ const UserManagement = () => {
     </div >
   );
 };
-
 export default UserManagement;

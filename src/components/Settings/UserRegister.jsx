@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { FcAddDatabase } from "react-icons/fc";
 import { supabase } from "../../supabaseClient";
 import { createClient } from "@supabase/supabase-js";
-
 const registerSchema = z.object({
   email: z.string().email("Correo electrónico inválido"),
   password: z.string().min(8, "La contraseña debe tener mínimo 8 caracteres"),
@@ -15,7 +14,6 @@ const registerSchema = z.object({
     message: "Selecciona un rol de la lista",
   }),
 });
-
 const UserRegister = ({ onSuccess }) => {
   const {
     register,
@@ -25,31 +23,25 @@ const UserRegister = ({ onSuccess }) => {
   } = useForm({
     resolver: zodResolver(registerSchema),
   });
-
   const [showPassword, setShowPassword] = useState(false);
-
   const onSubmit = async (data) => {
     try {
       const { email, password, role } = data;
-
       const { data: userInDb, error: dbError } = await supabase
         .from("users")
         .select("id")
         .eq("email", email)
         .maybeSingle();
-
       if (dbError) throw dbError;
       if (userInDb) {
         toast.error("Este usuario ya tiene un perfil activo en la base de datos.");
         return;
       }
-
       let userId = null;
       const { data: existingAuthId, error: rpcError } = await supabase.rpc(
         "get_user_id_by_email",
         { email_search: email }
       );
-
       if (existingAuthId) {
         userId = existingAuthId;
       } else {
@@ -60,17 +52,14 @@ const UserRegister = ({ onSuccess }) => {
             auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
           }
         );
-
         const { data: authData, error: authError } = await tempSupabase.auth.signUp({
           email,
           password,
           options: { data: { role } },
         });
-
         if (authError) throw authError;
         userId = authData.user?.id;
       }
-
       if (userId) {
         const { error: insertError } = await supabase
           .from("users")
@@ -82,9 +71,7 @@ const UserRegister = ({ onSuccess }) => {
               is_active: true,
             },
           ]);
-
         if (insertError) throw insertError;
-
         toast.success("Usuario registrado y vinculado exitosamente");
         reset();
         if (onSuccess) onSuccess();
@@ -94,7 +81,6 @@ const UserRegister = ({ onSuccess }) => {
       console.error("Registration error:", error);
     }
   };
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
@@ -117,7 +103,6 @@ const UserRegister = ({ onSuccess }) => {
           <span className="text-xs text-red-500">{errors.email.message}</span>
         )}
       </div>
-
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
           Contraseña
@@ -148,7 +133,6 @@ const UserRegister = ({ onSuccess }) => {
           <span className="text-xs text-red-500">{errors.password.message}</span>
         )}
       </div>
-
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
           Rol
@@ -171,11 +155,10 @@ const UserRegister = ({ onSuccess }) => {
           <span className="text-xs text-red-500">{errors.role.message}</span>
         )}
       </div>
-
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex justify-center items-center gap-2"
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex justify-center items-center gap-2"
       >
         {isSubmitting ? (
           <>
@@ -189,5 +172,4 @@ const UserRegister = ({ onSuccess }) => {
     </form>
   );
 };
-
 export default UserRegister;

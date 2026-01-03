@@ -1,13 +1,10 @@
 import React from "react";
-
-
 const Loader = ({ fullScreen = false, size = "medium", text }) => {
   const sizeClasses = {
     small: "w-5 h-5 border-2",
     medium: "w-8 h-8 border-4",
     large: "w-12 h-12 border-4",
   };
-
   const spinner = (
     <div
       className={`
@@ -17,7 +14,6 @@ const Loader = ({ fullScreen = false, size = "medium", text }) => {
     `}
     ></div>
   );
-
   if (fullScreen) {
     return (
       <div className="fixed inset-0 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
@@ -30,7 +26,6 @@ const Loader = ({ fullScreen = false, size = "medium", text }) => {
       </div>
     );
   }
-
   return (
     <div className="flex flex-col items-center justify-center gap-3 p-4">
       {spinner}
@@ -40,5 +35,4 @@ const Loader = ({ fullScreen = false, size = "medium", text }) => {
     </div>
   );
 };
-
 export default Loader;

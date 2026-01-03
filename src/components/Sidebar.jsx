@@ -28,17 +28,13 @@ import {
   BsLayoutSidebarInsetReverse,
   BsLayoutSidebarInset,
 } from "react-icons/bs";
-
 import EditProfileModal from "./EditProfileModal";
 import { toast } from "sonner";
-
-
 const Sidebar = ({ activeTab, onTabChange }) => {
   const [open, setOpen] = useState(() => {
     const savedState = localStorage.getItem("sidebarOpen");
     return savedState !== null ? JSON.parse(savedState) : true;
   });
-
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === "dark";
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -50,13 +46,11 @@ const Sidebar = ({ activeTab, onTabChange }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const profileMenuRef = useRef(null);
   const navigate = useNavigate();
-
   const [expandedSections, setExpandedSections] = useState({
     "patients-section": false,
     "appointments-section": false,
     "ehr-section": false
   });
-
   const toggleSection = (sectionId) => {
     if (!open) setOpen(true);
     setExpandedSections(prev => {
@@ -67,18 +61,15 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       return { [sectionId]: false };
     });
   };
-
   const handleItemClick = (tabId) => {
     setExpandedSections({});
     onTabChange(tabId);
   };
-
   const fetchUserData = async () => {
     setLoadingUserData(true);
     try {
       if (user) {
         const { full_name, avatar_url } = user.user_metadata || {};
-
         let { data: profile, error: fetchError } = await safeQuery(
           () => supabase
             .from("users")
@@ -86,23 +77,18 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             .eq("id", user.id)
             .maybeSingle()
         );
-
         if (fetchError) {
           console.error("Error fetching user profile:", fetchError);
-
           if (!fetchError.message?.includes("fetch") && !fetchError.message?.includes("tiempo de espera")) {
             toast.error("Error cargando perfil desde base de datos");
           } else if (fetchError.message?.includes("tiempo de espera")) {
             toast.error("Tiempo de espera agotado. Por favor, intenta nuevamente.");
           }
         }
-
         if (!profile && !fetchError) {
           const provider = user.app_metadata.provider ||
             user.identities?.find(i => i.provider === 'google')?.provider ||
             'email';
-
-
           setUserData({
             email: user.email,
             displayName: full_name || user.email.split("@")[0],
@@ -112,11 +98,9 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           setLoadingUserData(false);
           return;
         }
-
         if (profile && !profile.role) {
           console.warn("Usuario sin rol asignado. Debe ser asignado por un administrador.");
         }
-
         if (profile) {
           setUserData({
             email: user.email,
@@ -133,7 +117,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       setLoadingUserData(false);
     }
   };
-
   useEffect(() => {
     if (user?.id) {
       fetchUserData();
@@ -142,11 +125,9 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       setLoadingUserData(false);
     }
   }, [user?.id]);
-
   useEffect(() => {
     localStorage.setItem("sidebarOpen", JSON.stringify(open));
   }, [open]);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -156,32 +137,26 @@ const Sidebar = ({ activeTab, onTabChange }) => {
         setProfileMenuOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
   const handleProfileClick = () => {
     setProfileMenuOpen(!profileMenuOpen);
   };
-
   const handleEditProfile = () => {
     setIsEditProfileOpen(true);
     setProfileMenuOpen(false);
   };
-
   const handleProfileUpdate = () => {
     fetchUserData();
   };
-
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 600));
-
       await signOut();
     } catch (error) {
       console.error("Error signing out:", error);
@@ -191,7 +166,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
       navigate("/");
     }
   };
-
   const getFilteredMenuItems = () => {
     const menuStructure = [
       {
@@ -242,52 +216,38 @@ const Sidebar = ({ activeTab, onTabChange }) => {
         type: 'item'
       },
     ];
-
     if (loadingUserData || !userData?.role) return [];
-
     const role = userData.role.toLowerCase();
-
     const filterWithPermissions = (items) => {
       return items.filter(item => {
         const checkId = item.permissionId || item.id;
-
         if (checkId === 'dashboard') return true;
-
         if (!permissions) return false;
-
         const modulePermissions = permissions[checkId];
         if (!modulePermissions) return false;
-
         if (item.children) {
           item.children = item.children.filter(child => {
             const action = child.action || 'view';
             return modulePermissions[action] !== false;
           });
-
           if (item.children.length === 0) return false;
         } else {
           if (modulePermissions.view === false) return false;
         }
-
         return true;
       });
     };
-
     return filterWithPermissions(menuStructure);
   };
-
   const menuItems = getFilteredMenuItems();
-
   useEffect(() => {
     const activeSection = menuItems.find(
       (item) => item.type === "section" && item.children?.some((child) => child.id === activeTab)
     );
-
     if (activeSection) {
       setExpandedSections({ [activeSection.id]: true });
     }
   }, [activeTab]);
-
   return (
     <>
       <aside
@@ -318,7 +278,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             onClick={() => setOpen(!open)}
           >
             {open ? <BsLayoutSidebarInsetReverse /> : <BsLayoutSidebarInset />}
-
             {!open && (
               <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-[#1e1e1e] border border-gray-700 dark:border-[#333] text-white text-xs font-medium rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-xl transform translate-x-2 group-hover:translate-x-0">
                 {open ? "Cerrar menú" : "Abrir menú"}
@@ -327,7 +286,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             )}
           </button>
         </header>
-
         <nav className={`mt-8 flex-1 scrollbar-hide ${open ? "overflow-y-auto overflow-x-hidden" : "overflow-visible"}`}>
           <ul className="flex flex-col gap-1.5">
             {loadingUserData ? (
@@ -335,7 +293,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             ) : (
               menuItems.map((item) => {
                 const Icon = item.icon;
-
                 if (item.type === 'item') {
                   const isActive = activeTab === item.id;
                   return (
@@ -352,7 +309,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                           className={`text-lg flex-shrink-0 ${isActive ? "scale-110" : ""
                             } transition-transform`}
                         />
-
                         {open && (
                           <span
                             className={`font-medium text-sm whitespace-nowrap overflow-hidden ${isActive ? "font-semibold" : ""
@@ -361,7 +317,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                             {item.label}
                           </span>
                         )}
-
                         {!open && (
                           <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-[#1e1e1e] border border-gray-700 dark:border-[#333] text-white text-xs font-medium rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-xl transform translate-x-2 group-hover:translate-x-0">
                             {item.label}
@@ -374,7 +329,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 } else if (item.type === 'section') {
                   const isExpanded = expandedSections[item.id];
                   const hasActiveChild = item.children?.some(child => child.id === activeTab);
-
                   return (
                     <li key={item.id} className="relative group">
                       <button
@@ -393,13 +347,11 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                             </span>
                           )}
                         </div>
-
                         {open && (
                           <span className={`text-lg transition-transform duration-300 ${hasActiveChild ? "text-blue-500 dark:text-blue-400" : "text-gray-400"} ${isExpanded ? "rotate-90" : ""}`}>
                             <FiChevronRight />
                           </span>
                         )}
-
                         {!open && (
                           <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-[#1e1e1e] border border-gray-700 dark:border-[#333] text-white text-xs font-medium rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-xl transform translate-x-2 group-hover:translate-x-0">
                             {item.label}
@@ -407,14 +359,12 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                           </div>
                         )}
                       </button>
-
                       <div className={`overflow-hidden transition-all duration-300 ease-in-out ${open && isExpanded ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
                         {open && (
                           <ul className="flex flex-col gap-1 pl-4 ml-3 border-l-2 border-gray-100 dark:border-[#262626]">
                             {item.children?.map(child => {
                               const ChildIcon = child.icon;
                               const isChildActive = activeTab === child.id;
-
                               return (
                                 <li key={child.id}>
                                   <button
@@ -441,7 +391,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
             )}
           </ul>
         </nav>
-
         <footer className="flex flex-col gap-3">
           {loadingUserData ? (
             <ProfileSkeleton open={open} />
@@ -466,7 +415,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                     {userData?.role || "..."}
                   </p>
                 </div>
-
                 {open && (
                   <FiChevronRight
                     className={`transition-transform duration-200 text-gray-500 dark:text-[#a3a3a3] ${profileMenuOpen ? "rotate-90" : ""
@@ -474,7 +422,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                   />
                 )}
               </button>
-
               {profileMenuOpen && (
                 <div className="absolute bottom-0 left-full ml-2 bg-white dark:bg-[#1e1e1e] rounded-lg border-2 border-gray-200 dark:border-[#262626] overflow-hidden z-20 min-w-60 shadow-xl">
                   <div className="px-3 py-2 border-b border-gray-200 dark:border-[#262626] bg-gray-100 dark:bg-[#1a1a1a]">
@@ -524,7 +471,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                     <FiChevronRight className="text-xs" aria-hidden="true" />
                   </div>
                 )}
-
                 {!open && (
                   <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-[#1e1e1e] border border-gray-700 dark:border-[#333] text-white text-xs font-medium rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-xl transform translate-x-2 group-hover:translate-x-0">
                     Perfil
@@ -532,7 +478,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                   </div>
                 )}
               </button>
-
               {profileMenuOpen && (
                 <div className="absolute bottom-0 left-full ml-2 mb-2 bg-white dark:bg-[#1e1e1e] rounded-lg border-2 border-gray-200 dark:border-[#262626] overflow-hidden z-20 min-w-60 shadow-xl">
                   <div className="px-3 py-2 border-b border-gray-200 dark:border-[#262626] bg-gray-100 dark:bg-[#1a1a1a]">
@@ -571,7 +516,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
               )}
             </div>
           )}
-
           {open ? (
             <div>
               <div
@@ -582,7 +526,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 <div
                   className={`flex items-center justify-center gap-2 p-2 rounded-lg flex-1 transition-all duration-300 ${isDarkMode
                     ? "text-[#a3a3a3]"
-                    : "text-blue-600 bg-white shadow-sm"
+                    : "text-blue-600 bg-white"
                     }`}
                 >
                   <FiSun
@@ -591,10 +535,9 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                   />
                   <span className="font-medium">Claro</span>
                 </div>
-
                 <div
                   className={`flex items-center justify-center gap-2 p-2 rounded-lg flex-1 transition-all duration-300 ${isDarkMode
-                    ? "text-[#f5f5f5] bg-[#1a1a1a] shadow-sm"
+                    ? "text-[#f5f5f5] bg-[#1a1a1a]"
                     : "text-gray-500"
                     }`}
                 >
@@ -609,7 +552,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           ) : (
             <div className="flex justify-center">
               <button
-                className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer bg-gray-50 dark:bg-[#111111] hover:bg-gray-100 dark:hover:bg-[#1f1f1f] transition-colors text-blue-600 dark:text-[#e5e5e5] shadow-sm group relative"
+                className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer bg-gray-50 dark:bg-[#111111] hover:bg-gray-100 dark:hover:bg-[#1f1f1f] transition-colors text-blue-600 dark:text-[#e5e5e5] group relative"
                 onClick={toggleTheme}
               >
                 {isDarkMode ? (
@@ -617,7 +560,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 ) : (
                   <FiMoon className="text-[20px]" />
                 )}
-
                 {!open && (
                   <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-[#1e1e1e] border border-gray-700 dark:border-[#333] text-white text-xs font-medium rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-xl transform translate-x-2 group-hover:translate-x-0">
                     {isDarkMode ? "Modo claro" : "Modo oscuro"}
@@ -629,7 +571,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
           )}
         </footer>
       </aside>
-
       <EditProfileModal
         isOpen={isEditProfileOpen}
         onClose={() => setIsEditProfileOpen(false)}
@@ -638,15 +579,11 @@ const Sidebar = ({ activeTab, onTabChange }) => {
     </>
   );
 };
-
-
 const AvatarDisplay = ({ avatarUrl, size = "w-12 h-12", iconSize = 24 }) => {
   const [imgError, setImgError] = useState(false);
-
   useEffect(() => {
     setImgError(false);
   }, [avatarUrl]);
-
   return avatarUrl && !imgError ? (
     <img
       className={`${size} rounded-full inline-block border-2 border-white dark:border-[#262626] object-cover`}
@@ -661,7 +598,6 @@ const AvatarDisplay = ({ avatarUrl, size = "w-12 h-12", iconSize = 24 }) => {
     </div>
   );
 };
-
 const NavSkeleton = ({ open }) => {
   return (
     <>
@@ -678,7 +614,6 @@ const NavSkeleton = ({ open }) => {
     </>
   );
 };
-
 const ProfileSkeleton = ({ open }) => {
   return (
     <div className={`flex items-center bg-gray-50 dark:bg-[#111111] rounded-lg px-3 py-2 ${open ? "gap-3" : "justify-center"} animate-pulse border border-gray-100 dark:border-[#262626] shadow-sm`}>
@@ -692,5 +627,4 @@ const ProfileSkeleton = ({ open }) => {
     </div>
   );
 };
-
 export default Sidebar;

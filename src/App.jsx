@@ -3,8 +3,6 @@ import MyRoutes from "./routes";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 import OfflineOverlay from "./components/OfflineOverlay";
-
-
 function App() {
   return (
     <AuthProvider>
@@ -29,5 +27,4 @@ function App() {
     </AuthProvider>
   );
 }
-
 export default App;

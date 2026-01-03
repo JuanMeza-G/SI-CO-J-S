@@ -7,13 +7,10 @@ import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-
 const adminSchema = z.object({
   email: z.string().email("Correo electrónico inválido"),
   password: z.string().min(8, "La contraseña debe tener mínimo 8 caracteres"),
 });
-
-
 const AdminForm = () => {
   const {
     register,
@@ -22,62 +19,48 @@ const AdminForm = () => {
   } = useForm({
     resolver: zodResolver(adminSchema),
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
   const onSubmit = async (data) => {
     try {
       const url = new URL(window.location.href);
       url.searchParams.set("admin_login", "true");
       window.history.replaceState({}, "", url.toString());
-
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
-
       if (authError) throw authError;
-
       if (authData.user) {
         const { data: userProfile, error: profileError } = await supabase
           .from("users")
           .select("role, is_active")
           .eq("id", authData.user.id)
           .single();
-
         if (profileError) throw profileError;
-
         if (userProfile?.is_active === false) {
           await supabase.auth.signOut();
           return;
         }
-
         if (userProfile?.role !== "administrador") {
           await supabase.auth.signOut();
           return;
         }
       }
-
       toast.success("Sesión iniciada correctamente");
       navigate("/home");
-
     } catch (error) {
       let message = error.message;
-
       if (message === "Invalid login credentials") {
         message = "Correo o contraseña incorrectos";
       } else if (message.includes("JSON object requested, but no rows returned") ||
         message.includes("The request yielded no results")) {
         message = "Correo o contraseña incorrectos";
       }
-
       toast.error(message || "Error al iniciar sesión");
     }
   };
-
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
   const handleGoogleLogin = async () => {
     if (isGoogleLoading) return;
     setIsGoogleLoading(true);
@@ -88,7 +71,6 @@ const AdminForm = () => {
           redirectTo: `${window.location.origin}?admin_login=true`,
         },
       });
-
       if (error) throw error;
     } catch (error) {
       toast.error("Ocurrió un error al intentar iniciar sesión con Google.");
@@ -96,7 +78,6 @@ const AdminForm = () => {
       setIsGoogleLoading(false);
     }
   };
-
   return (
     <div className="w-full">
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -119,7 +100,6 @@ const AdminForm = () => {
             </span>
           )}
         </div>
-
         <div className="flex flex-col gap-1">
           <div className="relative">
             <input
@@ -149,7 +129,6 @@ const AdminForm = () => {
             </span>
           )}
         </div>
-
         <button
           type="submit"
           disabled={isSubmitting || isGoogleLoading}
@@ -158,13 +137,11 @@ const AdminForm = () => {
           {isSubmitting ? "Ingresando..." : "Ingresar"}
         </button>
       </form>
-
       <div className="flex items-center gap-2 my-6">
         <span className="flex-1 h-px bg-gray-200 dark:bg-[#262626]" />
         <span className="text-sm text-gray-400 dark:text-[#a3a3a3]">o</span>
         <span className="flex-1 h-px bg-gray-200 dark:bg-[#262626]" />
       </div>
-
       <button
         type="button"
         onClick={handleGoogleLogin}
@@ -179,5 +156,4 @@ const AdminForm = () => {
     </div>
   );
 };
-
 export default AdminForm;

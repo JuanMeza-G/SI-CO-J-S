@@ -6,71 +6,54 @@ import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { toast } from "sonner";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom"
-
 const operativeSchema = z.object({
   email: z.string().email("Correo electrónico inválido"),
   password: z.string().min(8, "La contraseña debe tener mínimo 8 caracteres"),
 });
-
-
 const OperativeForm = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(operativeSchema),
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate()
-
   const onSubmit = async (data) => {
     try {
       const { email, password } = data;
-
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
       if (error) throw error;
-
       if (authData.user) {
         const { data: userProfile, error: profileError } = await supabase
           .from("users")
           .select("role, is_active")
           .eq("id", authData.user.id)
           .single();
-
         if (profileError) throw profileError;
-
         if (userProfile?.is_active === false) {
           await supabase.auth.signOut();
           return;
         }
-
-
         if (userProfile?.role !== "secretaria" && userProfile?.role !== "optometra") {
           await supabase.auth.signOut();
           throw new Error("Acceso denegado. Este formulario es solo para personal operativo.");
         }
       }
-
       toast.success("Sesión iniciada correctamente");
       navigate("/home");
-
     } catch (error) {
       console.error(error);
       let message = error.message;
-
       if (message === "Invalid login credentials") {
         message = "Correo o contraseña incorrectos";
       } else if (message.includes("JSON object requested, but no rows returned") ||
         message.includes("The request yielded no results")) {
         message = "Correo o contraseña incorrectos";
       }
-
       toast.error(message || "Error al iniciar sesión");
     }
   };
-
   return (
     <div className="w-full">
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -131,5 +114,4 @@ const OperativeForm = () => {
     </div>
   );
 };
-
 export default OperativeForm;

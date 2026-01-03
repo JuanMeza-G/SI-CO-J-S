@@ -3,6 +3,7 @@ import Login from "../pages/Login.jsx"
 import Home from "../pages/Home.jsx"
 import Dashboard from "../pages/Dashboard.jsx"
 import Patients from "../pages/Patients.jsx"
+import PatientDetails from "../pages/PatientDetails.jsx"
 import PatientsSearch from "../components/Patients/PatientsSearch.jsx"
 import Appointments from "../pages/Appointments.jsx"
 import AppointmentsNew from "../components/Appointments/AppointmentsNew.jsx"
@@ -13,7 +14,6 @@ import EHREvolution from "../components/EHR/EHREvolution.jsx"
 import EHRDocuments from "../components/EHR/EHRDocuments.jsx"
 import Settings from "../pages/Settings.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
-
 const router = createBrowserRouter([
   {
     path: "/",
@@ -37,6 +37,10 @@ const router = createBrowserRouter([
           {
             path: "patients",
             element: <Patients />
+          },
+          {
+            path: "patients/:id",
+            element: <PatientDetails />
           },
           {
             path: "patients-search",
@@ -79,9 +83,7 @@ const router = createBrowserRouter([
     ],
   },
 ]);
-
 const MyRoutes = () => {
   return <RouterProvider router={router} />;
 };
-
 export default MyRoutes;

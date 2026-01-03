@@ -2,12 +2,10 @@ import React, { useEffect, useState, forwardRef, useImperativeHandle } from "rea
 import { supabase } from "../../supabaseClient";
 import { toast } from "sonner";
 import { FaCheck, FaTimes, FaShieldAlt } from "react-icons/fa";
-import { FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { FiChevronDown, FiChevronRight, FiLock } from "react-icons/fi";
 import Loader from "../Loader";
 import { safeQuery } from "../../utils/supabaseHelpers";
 import { modules, defaultPermissions } from "../../utils/permissions";
-
-
 const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
   const [roles, setRoles] = useState([]);
   const [permissions, setPermissions] = useState({});
@@ -15,14 +13,12 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expandedModules, setExpandedModules] = useState({});
-
   const toggleModule = (moduleId) => {
     setExpandedModules((prev) => ({
       ...prev,
       [moduleId]: !prev[moduleId],
     }));
   };
-
   const permissionLabels = {
     view: "Ver / Principal",
     search: "Búsqueda",
@@ -36,11 +32,9 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
     cancel: "Cancelar",
     activate: "Activar/Desactivar",
   };
-
   useEffect(() => {
     fetchRolesAndPermissions();
   }, []);
-
   const fetchRolesAndPermissions = async () => {
     setLoading(true);
     try {
@@ -50,24 +44,16 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           .select("role")
           .not("role", "is", null)
       );
-
       if (error) throw error;
-
       const uniqueRoles = [...new Set(usersData.map((u) => u.role))].filter(Boolean);
-
-
       const rolesList = uniqueRoles.length > 0
         ? uniqueRoles
         : ["administrador", "optometra", "secretaria"];
-
       setRoles(rolesList);
-
-
       const savedPermissions = localStorage.getItem("role_permissions");
       if (savedPermissions) {
         try {
           const parsed = JSON.parse(savedPermissions);
-
           if (parsed && typeof parsed === "object") {
             setPermissions(parsed);
             setInitialPermissions(JSON.parse(JSON.stringify(parsed)));
@@ -78,13 +64,11 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           console.warn("Error parsing saved permissions from localStorage:", e);
         }
       }
-
       const { data: permissionsData, error: permError } = await safeQuery(
         () => supabase
           .from("role_permissions")
           .select("*")
       );
-
       if (permError || !permissionsData || permissionsData.length === 0) {
         const defaultPerms = {};
         rolesList.forEach((role) => {
@@ -161,7 +145,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
       setLoading(false);
     }
   };
-
   const handlePermissionChange = (role, moduleId, permission, value) => {
     setPermissions((prev) => {
       const updated = {
@@ -174,38 +157,31 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           },
         },
       };
-
       localStorage.setItem("role_permissions", JSON.stringify(updated));
       return updated;
     });
   };
-
   useEffect(() => {
     const hasChanges = JSON.stringify(permissions) !== JSON.stringify(initialPermissions);
     if (onDirtyChange) {
       onDirtyChange(hasChanges);
     }
   }, [permissions, initialPermissions, onDirtyChange]);
-
   const handleSavePermissions = async () => {
     setSaving(true);
     const toastId = toast.loading("Guardando permisos...");
-
     try {
       if (!roles || roles.length === 0) {
         throw new Error("No hay roles definidos para guardar.");
       }
-
       const { error: deleteError } = await supabase
         .from("role_permissions")
         .delete()
         .in("role", roles);
-
       if (deleteError && deleteError.code !== "PGRST116") {
         console.error("Error deleting permissions:", deleteError);
         throw deleteError;
       }
-
       const permissionsToInsert = [];
       roles.forEach((role) => {
         modules.forEach((module) => {
@@ -220,12 +196,10 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           });
         });
       });
-
       if (permissionsToInsert.length > 0) {
         const { error: insertError } = await supabase
           .from("role_permissions")
           .insert(permissionsToInsert);
-
         if (insertError) {
           console.error("Error inserting permissions:", insertError);
           if (insertError.code === "42P01") {
@@ -241,12 +215,10 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
       } else {
         toast.success("No hay permisos para guardar.", { id: toastId });
       }
-
       setInitialPermissions(JSON.parse(JSON.stringify(permissions)));
       setTimeout(() => {
         window.location.reload();
       }, 1500);
-
     } catch (error) {
       console.error("Error saving permissions:", error);
       setTimeout(() => {
@@ -256,7 +228,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
       setSaving(false);
     }
   };
-
   const getRoleDisplayName = (role) => {
     const names = {
       administrador: "Administrador",
@@ -265,7 +236,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
     };
     return names[role] || role;
   };
-
   const getRoleBadgeColor = (role) => {
     switch (role?.toLowerCase()) {
       case "administrador":
@@ -278,15 +248,12 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
         return "bg-gray-50 text-gray-600 dark:bg-[#1a1a1a] dark:text-[#a3a3a3] border-gray-200 dark:border-[#262626]";
     }
   };
-
   useImperativeHandle(ref, () => ({
     savePermissions: handleSavePermissions,
   }));
-
   if (loading) {
     return <Loader text="Cargando roles y permisos..." />;
   }
-
   return (
     <div className="flex flex-col gap-6">
       <div className="hidden md:block overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
@@ -391,7 +358,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
           </tbody>
         </table>
       </div>
-
       <div className="md:hidden flex flex-col gap-4">
         {roles.length === 0 ? (
           <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-8">
@@ -416,7 +382,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
                     {getRoleDisplayName(role)}
                   </span>
                 </div>
-
                 {modules.map((module) => (
                   <div
                     key={module.id}
@@ -438,7 +403,6 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
                         className={`text-gray-500 transition-transform duration-300 ${expandedModules[module.id] ? "rotate-90" : ""}`}
                       />
                     </div>
-
                     <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${expandedModules[module.id] ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                       <div className="overflow-hidden">
                         <div className="grid grid-cols-2 gap-2 pt-2">
@@ -479,5 +443,4 @@ const RolesAndPermissions = forwardRef(({ onDirtyChange }, ref) => {
     </div>
   );
 });
-
 export default RolesAndPermissions;

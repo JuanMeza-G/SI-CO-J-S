@@ -30,7 +30,6 @@ export const modules = [
         permissions: ["view"],
     },
 ];
-
 export const defaultPermissions = {
     administrador: {
         dashboard: { view: true },

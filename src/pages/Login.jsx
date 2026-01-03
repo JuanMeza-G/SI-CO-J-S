@@ -5,13 +5,10 @@ import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AdminForm from "../components/AdminForm";
 import OperativeForm from "../components/OperativeForm";
-
 const Login = () => {
   const [selectedRole, setSelectedRole] = useState("");
   const [searchParams] = useSearchParams();
-
   const { user, loading, isVerifyingAdmin } = useAuth();
-
   if (loading) {
     return (
       <div className="bg-white dark:bg-[#0a0a0a] min-h-screen flex items-center justify-center">
@@ -22,11 +19,9 @@ const Login = () => {
       </div>
     );
   }
-
   if (user && !isVerifyingAdmin) {
     return <Navigate to="/home" replace />;
   }
-
   return (
     <div className="bg-white dark:bg-[#0a0a0a] min-h-screen flex flex-col px-4 transition-colors duration-200">
       <div className="flex-1 flex flex-col justify-center items-center gap-8 py-8">
@@ -37,14 +32,12 @@ const Login = () => {
               src="/Logo-removebg-preview.png"
               alt="Logo"
             />
-
             <div className="grid">
               <span className="font-semibold text-gray-900 dark:text-[#f5f5f5]">CENTRO ÓPTICO J&S</span>
               <span className="text-sm text-gray-500 dark:text-[#a3a3a3]">Sistema de gestión</span>
             </div>
           </div>
         </div>
-
         {!selectedRole && (
           <div className="text-center mt-6">
             <span className="text-2xl font-bold text-gray-900 dark:text-[#f5f5f5]">Seleccione tu rol</span>
@@ -87,7 +80,6 @@ const Login = () => {
                 <MdOutlineKeyboardBackspace className="text-xl" />
                 <span>Volver</span>
               </div>
-
               <span className="grid text-center">
                 <span className="text-gray-900 dark:text-[#f5f5f5]">Administrador</span>
                 <p className="text-sm text-gray-500 dark:text-[#a3a3a3]">
@@ -108,7 +100,6 @@ const Login = () => {
                 <MdOutlineKeyboardBackspace className="text-xl" />
                 <span>Volver</span>
               </div>
-
               <span className="grid text-center my-4">
                 <span className="text-gray-900 dark:text-[#f5f5f5]">Operativo</span>
                 <p className="text-sm text-gray-500 dark:text-[#a3a3a3]">
@@ -120,7 +111,6 @@ const Login = () => {
           </div>
         )}
       </div>
-
       <footer className="w-full border-t border-gray-200 dark:border-[#262626] py-4 text-center text-sm text-gray-500 dark:text-[#a3a3a3] transition-colors">
         © {new Date().getFullYear()} Centro Óptico J&S · Todos los derechos
         reservados
@@ -128,5 +118,4 @@ const Login = () => {
     </div>
   );
 };
-
 export default Login;

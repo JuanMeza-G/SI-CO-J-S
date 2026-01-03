@@ -3,22 +3,18 @@ import { supabase } from "../../supabaseClient";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { FaTrash, FaEdit, FaPlus, FaGlasses } from "react-icons/fa";
+import { FiClipboard } from "react-icons/fi";
 import Modal from "../Modal";
 import Loader from "../Loader";
 import ConfirmModal from "../ConfirmModal";
 import { safeQuery } from "../../utils/supabaseHelpers";
-
-
 const ServicesManagement = forwardRef((props, ref) => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentService, setCurrentService] = useState(null);
-
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
-
   const {
     register,
     handleSubmit,
@@ -26,11 +22,9 @@ const ServicesManagement = forwardRef((props, ref) => {
     setValue,
     formState: { errors },
   } = useForm();
-
   useEffect(() => {
     fetchServices();
   }, []);
-
   const fetchServices = async () => {
     try {
       setLoading(true);
@@ -40,7 +34,6 @@ const ServicesManagement = forwardRef((props, ref) => {
           .select("*")
           .order("name")
       );
-
       if (error) {
         toast.error("No se pudieron cargar los servicios. Por favor, verifica tu conexión.");
         return;
@@ -54,7 +47,6 @@ const ServicesManagement = forwardRef((props, ref) => {
       setLoading(false);
     }
   };
-
   const handleEdit = (service) => {
     setCurrentService(service);
     setValue("name", service.name);
@@ -63,22 +55,18 @@ const ServicesManagement = forwardRef((props, ref) => {
     setValue("duration_minutes", service.duration_minutes);
     setIsModalOpen(true);
   };
-
   const confirmDelete = (service) => {
     setServiceToDelete(service);
     setDeleteModalOpen(true);
   };
-
   const handleDelete = async () => {
     if (!serviceToDelete) return;
-
     try {
       const { error } = await supabase
         .from("services")
         .delete()
         .eq("id", serviceToDelete.id);
       if (error) throw error;
-
       setServices((prev) => prev.filter((s) => s.id !== serviceToDelete.id));
       toast.success("Servicio eliminado");
     } catch (error) {
@@ -89,7 +77,6 @@ const ServicesManagement = forwardRef((props, ref) => {
       setServiceToDelete(null);
     }
   };
-
   const onSubmit = async (data) => {
     try {
       let error;
@@ -100,9 +87,7 @@ const ServicesManagement = forwardRef((props, ref) => {
           .eq("id", currentService.id)
           .select()
           .single();
-
         if (updateError) throw updateError;
-
         setServices((prev) =>
           prev.map((s) => (s.id === currentService.id ? updatedData : s))
         );
@@ -112,14 +97,11 @@ const ServicesManagement = forwardRef((props, ref) => {
           .insert([data])
           .select()
           .single();
-
         if (insertError) throw insertError;
-
         setServices((prev) =>
           [...prev, newData].sort((a, b) => a.name.localeCompare(b.name))
         );
       }
-
       toast.success(
         currentService ? "Servicio actualizado" : "Servicio creado"
       );
@@ -131,19 +113,15 @@ const ServicesManagement = forwardRef((props, ref) => {
       console.error(error);
     }
   };
-
   const openNewModal = () => {
     setCurrentService(null);
     reset();
     setIsModalOpen(true);
   };
-
   useImperativeHandle(ref, () => ({
     openNewModal,
   }));
-
   if (loading) return <Loader text="Cargando servicios..." />;
-
   return (
     <div className="flex flex-col gap-6">
       <div className="hidden md:block overflow-hidden bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626]">
@@ -233,7 +211,6 @@ const ServicesManagement = forwardRef((props, ref) => {
           </tbody>
         </table>
       </div>
-
       <div className="md:hidden flex flex-col gap-4">
         {services.length === 0 ? (
           <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] p-8">
@@ -272,7 +249,6 @@ const ServicesManagement = forwardRef((props, ref) => {
                     </button>
                   </div>
                 </div>
-
                 {service.description && (
                   <div>
                     <p className="text-sm text-gray-600 dark:text-[#e5e5e5]">
@@ -280,7 +256,6 @@ const ServicesManagement = forwardRef((props, ref) => {
                     </p>
                   </div>
                 )}
-
                 <div className="flex items-center justify-between gap-4 pt-2 border-t border-gray-200 dark:border-[#262626]">
                   <div className="flex flex-col">
                     <span className="text-xs text-gray-500 dark:text-[#a3a3a3]">
@@ -308,7 +283,6 @@ const ServicesManagement = forwardRef((props, ref) => {
           ))
         )}
       </div>
-
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -377,13 +351,12 @@ const ServicesManagement = forwardRef((props, ref) => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium mt-4 transition-colors disabled:opacity-50 flex justify-center items-center"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-bold mt-4 transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex justify-center items-center"
           >
             {currentService ? "Actualizar Servicio" : "Crear Servicio"}
           </button>
         </form>
       </Modal>
-
       <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
@@ -404,5 +377,4 @@ const ServicesManagement = forwardRef((props, ref) => {
     </div>
   );
 });
-
 export default ServicesManagement;

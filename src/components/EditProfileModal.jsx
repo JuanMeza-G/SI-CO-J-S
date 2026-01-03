@@ -6,8 +6,6 @@ import Modal from "./Modal";
 import { FaCamera, FaUser, FaLock, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import Loader from "./Loader";
-
-
 const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(true);
@@ -19,16 +17,13 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
   const [initialAvatarUrl, setInitialAvatarUrl] = useState(null);
   const [initialFullName, setInitialFullName] = useState(null);
   const [avatarFileChanged, setAvatarFileChanged] = useState(false);
-
   const { register, handleSubmit, setValue, reset, watch } = useForm();
   const newPassword = watch("newPassword");
   const fullName = watch("full_name");
-
   useEffect(() => {
     if (isOpen) {
       loadUserData();
     } else {
-
       setValue("newPassword", "");
       setValue("confirmPassword", "");
       setShowPassword(false);
@@ -41,7 +36,6 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       }
     }
   }, [isOpen, setValue]);
-
   const loadUserData = async () => {
     try {
       setFetchingData(true);
@@ -50,29 +44,22 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       } = await supabase.auth.getUser();
       if (!user) return;
       setUser(user);
-
-
       const { data: profile, error } = await supabase
         .from("users")
         .select("full_name, avatar_url")
         .eq("id", user.id)
         .maybeSingle();
-
       const metaName = user.user_metadata?.full_name;
       const metaAvatar = user.user_metadata?.avatar_url;
-
       let finalName = "";
       let finalAvatar = null;
-
       if (profile) {
         finalName = profile.full_name || metaName || "";
         finalAvatar = profile.avatar_url || metaAvatar;
       } else {
-
         finalName = metaName || user.email.split("@")[0];
         finalAvatar = metaAvatar || null;
       }
-
       setValue("full_name", finalName);
       setAvatarPreview(finalAvatar);
       setInitialFullName(finalName);
@@ -84,7 +71,6 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       setFetchingData(false);
     }
   };
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -96,35 +82,28 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       reader.readAsDataURL(file);
     }
   };
-
   const uploadAvatar = async (file) => {
     if (!file) return null;
-
     const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}-${Math.random()}.${fileExt}`;
     const filePath = `${fileName}`;
-
     const { error: uploadError } = await supabase.storage
       .from("avatars")
       .upload(filePath, file);
-
     if (uploadError) {
       throw uploadError;
     }
-
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
     return data.publicUrl;
   };
-
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      const avatarUrl = avatarPreview;
+      let avatarUrl = avatarPreview;
       const fileInput = document.getElementById("avatar-upload");
       if (fileInput?.files?.length > 0) {
         avatarUrl = await uploadAvatar(fileInput.files[0]);
       }
-
       const { error } = await supabase
         .from("users")
         .update({
@@ -132,10 +111,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
           avatar_url: avatarUrl,
         })
         .eq("id", user.id);
-
       if (error) throw error;
-
-
       if (data.newPassword) {
         if (data.newPassword.length < 8) {
           toast.error("La contraseña debe tener al menos 8 caracteres");
@@ -145,22 +121,16 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
           toast.error("Las contraseñas no coinciden");
           return;
         }
-
         const { error: passwordError } = await supabase.auth.updateUser({
           password: data.newPassword
         });
-
         if (passwordError) throw passwordError;
       }
-
       if (error) throw error;
-
       toast.success("Perfil actualizado correctamente");
-
       setInitialFullName(data.full_name);
       setInitialAvatarUrl(avatarUrl);
       setAvatarFileChanged(false);
-
       setValue("newPassword", "");
       setValue("confirmPassword", "");
       setShowPassword(false);
@@ -175,18 +145,13 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
       setLoading(false);
     }
   };
-
-
   const hasChanges = () => {
     const nameChanged = fullName !== initialFullName;
     const avatarChanged = avatarFileChanged;
     const passwordChanged = newPassword && newPassword.length > 0;
-
     return nameChanged || avatarChanged || passwordChanged;
   };
-
   const isFormDirty = hasChanges();
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Editar Perfil">
       {fetchingData ? (
@@ -212,7 +177,7 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
               </div>
               <label
                 htmlFor="avatar-upload"
-                className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition shadow-lg"
+                className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition"
               >
                 <FaCamera className="text-xs" />
                 <input
@@ -225,7 +190,6 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
               </label>
             </div>
           </div>
-
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
               Nombre Completo
@@ -237,7 +201,6 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
               className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-[#262626] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-[#1a1a1a] dark:text-[#f5f5f5]"
             />
           </div>
-
           <div className="border-t border-gray-100 dark:border-[#262626] pt-4">
             <button
               type="button"
@@ -254,7 +217,6 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
                 <FaChevronDown className="text-xs text-gray-400 dark:text-[#a3a3a3]" />
               )}
             </button>
-
             {showPassword && (
               <div className="mt-4 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="flex flex-col gap-2">
@@ -278,7 +240,6 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
                     </button>
                   </div>
                 </div>
-
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">
                     Confirmar Contraseña
@@ -303,11 +264,10 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
               </div>
             )}
           </div>
-
           <button
             type="submit"
             disabled={loading || !isFormDirty}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer font-medium py-2.5 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer font-bold py-2.5 rounded-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -323,5 +283,4 @@ const EditProfileModal = ({ isOpen, onClose, onProfileUpdate }) => {
     </Modal >
   );
 };
-
 export default EditProfileModal;

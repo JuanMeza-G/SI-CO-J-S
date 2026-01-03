@@ -9,21 +9,16 @@ import React, {
 import { supabase } from "../supabaseClient";
 import { toast } from "sonner";
 import { defaultPermissions, modules } from "../utils/permissions";
-
 const AuthContext = createContext({});
-
 export const useAuth = () => useContext(AuthContext);
-
 const INITIAL_SESSION_TIMEOUT = 4000;
 const PROFILE_TIMEOUT = 3000;
 const FAST_TIMEOUT = 2000;
-
 const withQuickTimeout = (promise, timeoutMs, operationName = "Operación") => {
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       reject(new Error(`${operationName} timeout (${timeoutMs}ms)`));
     }, timeoutMs);
-
     Promise.resolve(promise)
       .then(resolve)
       .catch(reject)
@@ -32,7 +27,6 @@ const withQuickTimeout = (promise, timeoutMs, operationName = "Operación") => {
       });
   });
 };
-
 const quickQuery = async (
   queryFn,
   timeoutMs = 5000,
@@ -47,7 +41,6 @@ const quickQuery = async (
     throw error;
   }
 };
-
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
@@ -59,35 +52,25 @@ export const AuthProvider = ({ children }) => {
   const [networkStatus, setNetworkStatus] = useState(
     navigator.onLine ? "online" : "offline"
   );
-
-
   const isMounted = useRef(true);
   const initializationAttempted = useRef(false);
   const authSubscription = useRef(null);
-
-
   useEffect(() => {
     const handleOnline = () => {
       setNetworkStatus("online");
     };
-
     const handleOffline = () => {
       setNetworkStatus("offline");
     };
-
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
-
-
   const loadPermissionsFromCache = useCallback((role) => {
     if (!role) return defaultPermissions.guest || {};
-
     try {
       const saved = localStorage.getItem("role_permissions");
       if (saved) {
@@ -96,7 +79,6 @@ export const AuthProvider = ({ children }) => {
           return parsed[role];
         }
       }
-
       const oldSaved = localStorage.getItem("role_permissions_cache");
       if (oldSaved) {
         const parsed = JSON.parse(oldSaved);
@@ -107,35 +89,26 @@ export const AuthProvider = ({ children }) => {
     } catch (e) {
       console.warn("Error parsing permissions cache:", e);
     }
-
     return defaultPermissions[role] || defaultPermissions.guest || {};
   }, []);
-
   const fetchPermissionsFromDB = useCallback(async (role) => {
     if (!role) return null;
-
     try {
       const { data, error } = await supabase
         .from("role_permissions")
         .select("*");
-
       if (error) throw error;
-
       if (data && data.length > 0) {
         const newPerms = {};
         const uniqueRoles = [...new Set(data.map(p => p.role))];
-
         uniqueRoles.forEach(r => {
           newPerms[r] = {};
         });
-
         data.forEach(p => {
           if (!newPerms[p.role][p.module]) newPerms[p.role][p.module] = {};
           newPerms[p.role][p.module][p.permission] = p.allowed;
         });
-
         localStorage.setItem("role_permissions", JSON.stringify(newPerms));
-
         return newPerms[role];
       }
     } catch (e) {
@@ -143,11 +116,9 @@ export const AuthProvider = ({ children }) => {
     }
     return null;
   }, []);
-
   const fetchUserProfileQuick = useCallback(
     async (userId) => {
       if (!userId) return null;
-
       if (networkStatus === "offline") {
         const cachedProfile = localStorage.getItem("user_profile_cache");
         if (cachedProfile) {
@@ -158,7 +129,6 @@ export const AuthProvider = ({ children }) => {
         }
         return null;
       }
-
       try {
         const result = await quickQuery(
           () =>
@@ -166,9 +136,7 @@ export const AuthProvider = ({ children }) => {
           PROFILE_TIMEOUT,
           "Cargar perfil"
         );
-
         if (result?.error) return null;
-
         if (result?.data) {
           try {
             localStorage.setItem(
@@ -181,11 +149,9 @@ export const AuthProvider = ({ children }) => {
           } catch (e) {
           }
         }
-
         return result?.data || null;
       } catch (error) {
         console.warn("No se pudo cargar perfil (usando caché):", error.message);
-
         const cachedProfile = localStorage.getItem("user_profile_cache");
         if (cachedProfile) {
           try {
@@ -196,17 +162,14 @@ export const AuthProvider = ({ children }) => {
           } catch (e) {
           }
         }
-
         return null;
       }
     },
     [networkStatus]
   );
-
   const getInitialSessionQuick = useCallback(async () => {
     if (!isMounted.current || initializationAttempted.current) return;
     initializationAttempted.current = true;
-
     const globalTimeout = setTimeout(() => {
       if (isMounted.current && loading) {
         console.warn(
@@ -216,22 +179,18 @@ export const AuthProvider = ({ children }) => {
         setPermissions(defaultPermissions.guest || {});
       }
     }, 5000);
-
     try {
       let authSession = null;
-
       try {
         const sessionResult = await quickQuery(
           () => supabase.auth.getSession(),
           INITIAL_SESSION_TIMEOUT,
           "Obtener sesión"
         );
-
         authSession = sessionResult?.data?.session || null;
       } catch (error) {
         console.warn("No se pudo obtener sesión inicial:", error.message);
       }
-
       if (!authSession?.user) {
         if (isMounted.current) {
           setSession(null);
@@ -244,22 +203,17 @@ export const AuthProvider = ({ children }) => {
         clearTimeout(globalTimeout);
         return;
       }
-
       if (isMounted.current) {
         setSession(authSession);
-
         try {
           const profile = await fetchUserProfileQuick(authSession.user.id);
-
           if (!isMounted.current) {
             clearTimeout(globalTimeout);
             return;
           }
-
           if (profile) {
             if (profile.is_active === false) {
               await supabase.auth.signOut();
-
               setSession(null);
               setUser(null);
               setUserProfile(null);
@@ -269,17 +223,13 @@ export const AuthProvider = ({ children }) => {
               clearTimeout(globalTimeout);
               return;
             }
-
             const role = profile.role || "invitado";
             const perms = loadPermissionsFromCache(role);
-
             const urlParams = new URL(window.location.href).searchParams;
             const isAdminLogin = urlParams.get("admin_login") === "true";
-
             if (isAdminLogin) {
               setIsVerifyingAdmin(true);
             }
-
             if (isAdminLogin && role !== "administrador") {
               toast.error("Acceso denegado. Se requieren permisos de administrador.");
               setPermissions(defaultPermissions.guest || {});
@@ -288,19 +238,16 @@ export const AuthProvider = ({ children }) => {
               clearTimeout(globalTimeout);
               return;
             }
-
             if (isAdminLogin) {
               setIsVerifyingAdmin(false);
               const url = new URL(window.location.href);
               url.searchParams.delete("admin_login");
               window.history.replaceState({}, "", url.pathname);
             }
-
             setUserProfile(profile);
             setUserRole(role);
             setPermissions(perms);
             setUser(authSession.user);
-
             const currentProvider = authSession.user.app_metadata.provider;
             if (currentProvider && profile.provider !== currentProvider) {
               supabase
@@ -311,16 +258,13 @@ export const AuthProvider = ({ children }) => {
                   if (error) console.warn("Error sincronizando provider:", error.message);
                 });
             }
-
             fetchPermissionsFromDB(role).then(dbPerms => {
               if (isMounted.current && dbPerms) {
                 setPermissions(dbPerms);
               }
             });
           } else {
-
             await supabase.auth.signOut();
-
             setSession(null);
             setUser(null);
             setUserProfile(null);
@@ -335,14 +279,11 @@ export const AuthProvider = ({ children }) => {
           console.warn("Error verificando perfil en inicio:", error.message);
           setUser(authSession.user);
         }
-
         setLoading(false);
       }
-
       clearTimeout(globalTimeout);
     } catch (error) {
       console.warn("Error en inicialización:", error.message);
-
       if (isMounted.current) {
         setSession(null);
         setUser(null);
@@ -351,17 +292,12 @@ export const AuthProvider = ({ children }) => {
         setPermissions(defaultPermissions.guest || {});
         setLoading(false);
       }
-
       clearTimeout(globalTimeout);
     }
   }, [fetchUserProfileQuick, loadPermissionsFromCache, loading]);
-
   const handleAuthChange = useCallback(
     (event, authSession) => {
       if (!isMounted.current) return;
-
-
-
       if (event === "SIGNED_OUT") {
         setSession(null);
         setUser(null);
@@ -369,14 +305,12 @@ export const AuthProvider = ({ children }) => {
         setUserRole(null);
         setPermissions(defaultPermissions.guest || {});
         setLoading(false);
-
         try {
           localStorage.removeItem("user_profile_cache");
         } catch (e) {
         }
         return;
       }
-
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         if (!authSession?.user) {
           setSession(null);
@@ -385,13 +319,10 @@ export const AuthProvider = ({ children }) => {
           setLoading(false);
           return;
         }
-
         (async () => {
           try {
             const profile = await fetchUserProfileQuick(authSession.user.id);
-
             if (!isMounted.current) return;
-
             if (profile) {
               if (profile.is_active === false) {
                 await supabase.auth.signOut();
@@ -404,25 +335,19 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
                 return;
               }
-
               const role = profile.role || "invitado";
               const perms = loadPermissionsFromCache(role);
-
               const urlParams = new URL(window.location.href).searchParams;
               const isAdminLogin = urlParams.get("admin_login") === "true";
-
               if (isAdminLogin) {
                 setIsVerifyingAdmin(true);
               }
-
               if (isAdminLogin && role !== "administrador") {
                 toast.error("Acceso denegado. Se requieren permisos de administrador.");
                 await supabase.auth.signOut();
-
                 const url = new URL(window.location.href);
                 url.searchParams.delete("admin_login");
                 window.history.replaceState({}, "", url.pathname);
-
                 setSession(null);
                 setUser(null);
                 setUserProfile(null);
@@ -432,20 +357,17 @@ export const AuthProvider = ({ children }) => {
                 setIsVerifyingAdmin(false);
                 return;
               }
-
               setSession(authSession);
               setUser(authSession.user);
               setUserProfile(profile);
               setUserRole(role);
               setPermissions(perms);
-
               if (isAdminLogin) {
                 setIsVerifyingAdmin(false);
                 const url = new URL(window.location.href);
                 url.searchParams.delete("admin_login");
                 window.history.replaceState({}, "", url.pathname);
               }
-
               const currentProvider = authSession.user.app_metadata.provider;
               if (currentProvider && profile.provider !== currentProvider) {
                 supabase
@@ -456,15 +378,12 @@ export const AuthProvider = ({ children }) => {
                     if (error) console.warn("Error sincronizando provider en auth change:", error.message);
                   });
               }
-
               if (authSession.user.app_metadata.provider !== "email") {
                 toast.success("Sesión iniciada correctamente");
               }
             } else {
               toast.error("Usuario sin perfil en la base de datos. Debe ser registrado por un administrador.");
-
               await supabase.auth.signOut();
-
               setSession(null);
               setUser(null);
               setUserProfile(null);
@@ -483,26 +402,21 @@ export const AuthProvider = ({ children }) => {
     },
     [fetchUserProfileQuick, loadPermissionsFromCache]
   );
-
   useEffect(() => {
     isMounted.current = true;
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(handleAuthChange);
     authSubscription.current = subscription;
-
     getInitialSessionQuick();
     return () => {
       isMounted.current = false;
       initializationAttempted.current = false;
-
       if (authSubscription.current) {
         authSubscription.current.unsubscribe();
       }
     };
   }, [getInitialSessionQuick, handleAuthChange]);
-
   const value = {
     session,
     user,
@@ -529,17 +443,14 @@ export const AuthProvider = ({ children }) => {
     }, []),
     refreshUserProfile: useCallback(async () => {
       if (!user?.id) return;
-
       try {
         const profile = await fetchUserProfileQuick(user.id);
         if (profile && isMounted.current) {
           const role = profile.role || "invitado";
           const perms = loadPermissionsFromCache(role);
-
           setUserProfile(profile);
           setUserRole(role);
           setPermissions(perms);
-
           fetchPermissionsFromDB(role).then(dbPerms => {
             if (isMounted.current && dbPerms) {
               setPermissions(dbPerms);
@@ -551,6 +462,5 @@ export const AuthProvider = ({ children }) => {
       }
     }, [user?.id, fetchUserProfileQuick, loadPermissionsFromCache]),
   };
-
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
