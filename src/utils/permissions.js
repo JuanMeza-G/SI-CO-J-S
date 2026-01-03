@@ -21,7 +21,7 @@ export const modules = [
         id: "ehr",
         name: "Historia Clínica (HCE)",
         description: "Registros médicos electrónicos",
-        permissions: ["view", "evolution", "documents"],
+        permissions: ["view", "evolution"],
     },
     {
         id: "settings",
@@ -35,21 +35,21 @@ export const defaultPermissions = {
         dashboard: { view: true },
         patients: { view: true, search: true },
         appointments: { view: true, agenda: true, waiting: true },
-        ehr: { view: true, evolution: true, documents: true },
+        ehr: { view: true, evolution: true },
         settings: { view: true },
     },
     optometra: {
         dashboard: { view: true },
         patients: { view: true, search: true },
         appointments: { view: true, agenda: true, waiting: true },
-        ehr: { view: true, evolution: true, documents: true },
+        ehr: { view: true, evolution: true },
         settings: { view: false },
     },
     secretaria: {
         dashboard: { view: true },
         patients: { view: true, search: true },
         appointments: { view: true, agenda: true, waiting: true },
-        ehr: { view: true, evolution: false, documents: true },
+        ehr: { view: true, evolution: false },
         settings: { view: false },
     },
 };

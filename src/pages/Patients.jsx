@@ -56,7 +56,10 @@ const Patients = () => {
         fetchPatients();
     }, [page, statusFilter, sortConfig]);
     useEffect(() => {
-        setPage(1);
+        const timer = setTimeout(() => {
+            setPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
     }, [searchTerm]);
     const handleSavePatient = async (patientData) => {
         try {
@@ -135,8 +138,15 @@ const Patients = () => {
                     <span>Nuevo Paciente</span>
                 </button>
             </div>
-            {}
-            <div className="bg-white dark:bg-[#111111] p-4 rounded-lg border-2 border-gray-200 dark:border-[#262626] flex flex-col md:flex-row gap-4 items-center">
+            { }
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    setPage(1);
+                    fetchPatients();
+                }}
+                className="bg-white dark:bg-[#111111] p-4 rounded-lg border-2 border-gray-200 dark:border-[#262626] flex flex-col md:flex-row gap-4 items-center"
+            >
                 <div className="relative flex-1 w-full text-sm">
                     <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
@@ -158,8 +168,8 @@ const Patients = () => {
                         <option value="Inactivos">Inactivos</option>
                     </select>
                 </div>
-            </div>
-            {}
+            </form>
+            { }
             <div className="bg-white dark:bg-[#111111] rounded-lg border-2 border-gray-200 dark:border-[#262626] overflow-hidden">
                 <div className="overflow-x-auto">
                     {loading ? (
@@ -261,7 +271,7 @@ const Patients = () => {
                         </table>
                     )}
                 </div>
-                {}
+                { }
                 {totalPages > 1 && (
                     <div className="bg-gray-50 dark:bg-[#1a1a1a] px-6 py-3 flex items-center justify-between border-t border-gray-200 dark:border-[#262626]">
                         <div className="flex-1 flex justify-between sm:hidden">

@@ -106,3 +106,40 @@ html.dark body {
 [data-sonner-toast][data-type="warning"] [data-icon] {
     color: #f59e0b !important;
 }
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #262626;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #333333;
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #e2e8f0 transparent;
+}
+
+.dark * {
+    scrollbar-color: #262626 transparent;
+}

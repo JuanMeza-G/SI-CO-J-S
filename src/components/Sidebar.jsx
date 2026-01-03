@@ -19,7 +19,6 @@ import {
   FiList,
   FiClock,
   FiTrendingUp,
-  FiPaperclip,
   FiClipboard,
 } from "react-icons/fi";
 import { FaUserEdit, FaUserCircle } from "react-icons/fa";
@@ -205,8 +204,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
         permissionId: "ehr",
         children: [
           { id: "ehr", label: "Registro Consulta", icon: FiFileText, action: "view" },
-          { id: "ehr-evolution", label: "Evolución", icon: FiTrendingUp, action: "evolution" },
-          { id: "ehr-documents", label: "Documentos", icon: FiPaperclip, action: "documents" }
+          { id: "ehr-evolution", label: "Evolución", icon: FiTrendingUp, action: "evolution" }
         ]
       },
       {

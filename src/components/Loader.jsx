@@ -1,6 +1,7 @@
 import React from "react";
 const Loader = ({ fullScreen = false, size = "medium", text }) => {
   const sizeClasses = {
+    xs: "w-4 h-4 border-2",
     small: "w-5 h-5 border-2",
     medium: "w-8 h-8 border-4",
     large: "w-12 h-12 border-4",
@@ -8,7 +9,7 @@ const Loader = ({ fullScreen = false, size = "medium", text }) => {
   const spinner = (
     <div
       className={`
-      ${sizeClasses[size]}
+      ${sizeClasses[size] || sizeClasses.medium}
       border-blue-200 border-t-blue-600 rounded-full animate-spin
       dark:border-[#262626] dark:border-t-blue-500
     `}

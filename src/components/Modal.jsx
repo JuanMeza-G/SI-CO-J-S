@@ -17,8 +17,8 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className={`bg-white dark:bg-[#111111] dark:border dark:border-[#262626] rounded-2xl shadow-2xl w-full ${sizes[size] || sizes.md} overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
-        <div className="flex items-center justify-between p-4  border-gray-100 dark:border-[#262626]">
-          <h3 className="font-semibold text-lg text-gray-900 dark:text-[#f5f5f5]">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-[#262626]">
+          <h3 className="font-black text-xl text-gray-900 dark:text-[#f5f5f5] uppercase tracking-tight">
             {title}
           </h3>
           <button

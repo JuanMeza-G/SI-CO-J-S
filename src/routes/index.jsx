@@ -6,14 +6,13 @@ import Patients from "../pages/Patients.jsx"
 import PatientDetails from "../pages/PatientDetails.jsx"
 import PatientsSearch from "../components/Patients/PatientsSearch.jsx"
 import Appointments from "../pages/Appointments.jsx"
-import AppointmentsNew from "../components/Appointments/AppointmentsNew.jsx"
 import AppointmentsAgenda from "../components/Appointments/AppointmentsAgenda.jsx"
 import AppointmentsWaiting from "../components/Appointments/AppointmentsWaiting.jsx"
 import EHR from "../pages/EHR.jsx"
 import EHREvolution from "../components/EHR/EHREvolution.jsx"
-import EHRDocuments from "../components/EHR/EHRDocuments.jsx"
 import Settings from "../pages/Settings.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -51,10 +50,6 @@ const router = createBrowserRouter([
             element: <Appointments />
           },
           {
-            path: "appointments-new",
-            element: <AppointmentsNew />
-          },
-          {
             path: "appointments-agenda",
             element: <AppointmentsAgenda />
           },
@@ -71,10 +66,6 @@ const router = createBrowserRouter([
             element: <EHREvolution />
           },
           {
-            path: "ehr-documents",
-            element: <EHRDocuments />
-          },
-          {
             path: "settings",
             element: <Settings />
           }
@@ -83,7 +74,9 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
 const MyRoutes = () => {
   return <RouterProvider router={router} />;
 };
+
 export default MyRoutes;

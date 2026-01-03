@@ -136,13 +136,13 @@ const Settings = () => {
         </Modal>
         <div
           onClick={() => setActiveView("userManagement")}
-          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white rounded-lg px-4 py-3 sm:py-2 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
+          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white rounded-lg px-4 py-4 sm:py-5 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
         >
-          <div className="flex justify-center items-center w-16 sm:w-24">
-            <FcConferenceCall className="text-6xl sm:text-8xl" />
+          <div className="flex justify-center items-center w-12 sm:w-16">
+            <FcConferenceCall className="text-4xl sm:text-5xl" />
           </div>
           <div className="grid text-center sm:text-left">
-            <span className="font-bold text-sm sm:text-base">
+            <span className="font-bold text-base sm:text-lg">
               Gestionar usuarios
             </span>
             <span className="text-xs sm:text-sm text-gray-500 dark:text-[#a3a3a3]">
@@ -152,14 +152,14 @@ const Settings = () => {
         </div>
         <div
           onClick={() => setActiveView("clinicInfo")}
-          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white rounded-lg px-4 py-3 sm:py-2 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
+          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white rounded-lg px-4 py-4 sm:py-5 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
         >
-          <div className="flex justify-center items-center w-16 sm:w-24">
-            <FcDepartment className="text-6xl sm:text-8xl" />
+          <div className="flex justify-center items-center w-12 sm:w-16">
+            <FcDepartment className="text-4xl sm:text-5xl" />
           </div>
           <div className="grid text-center sm:text-left">
-            <span className="font-bold text-sm sm:text-base">
-              Info. del centro óptico
+            <span className="font-bold text-base sm:text-lg">
+              Info. Centro
             </span>
             <span className="text-xs sm:text-sm text-gray-500 dark:text-[#a3a3a3]">
               Datos generales y horarios/días de atención
@@ -168,13 +168,13 @@ const Settings = () => {
         </div>
         <div
           onClick={() => setActiveView("services")}
-          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white rounded-lg px-4 py-3 sm:py-2 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
+          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white rounded-lg px-4 py-4 sm:py-5 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
         >
-          <div className="flex justify-center items-center w-16 sm:w-24">
-            <FcTodoList className="text-6xl sm:text-8xl" />
+          <div className="flex justify-center items-center w-12 sm:w-16">
+            <FcTodoList className="text-4xl sm:text-5xl" />
           </div>
           <div className="grid text-center sm:text-left">
-            <span className="font-bold text-sm sm:text-base">Servicios</span>
+            <span className="font-bold text-base sm:text-lg">Servicios</span>
             <span className="text-xs sm:text-sm text-gray-500 dark:text-[#a3a3a3]">
               Catálogo de servicios y precios de consulta
             </span>
@@ -182,13 +182,13 @@ const Settings = () => {
         </div>
         <div
           onClick={() => setActiveView("rolesAndPermissions")}
-          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white rounded-lg px-4 py-3 sm:py-2 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
+          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-white rounded-lg px-4 py-4 sm:py-5 border-2 border-gray-200 dark:bg-[#111111] dark:border-[#262626] dark:text-[#f5f5f5] cursor-pointer hover:border-gray-300 dark:hover:border-[#2a2a2a] transition-colors"
         >
-          <div className="flex justify-center items-center w-16 sm:w-24">
-            <FcLock className="text-6xl sm:text-8xl" />
+          <div className="flex justify-center items-center w-12 sm:w-16">
+            <FcLock className="text-4xl sm:text-5xl" />
           </div>
           <div className="grid text-center sm:text-left">
-            <span className="font-bold text-sm sm:text-base">
+            <span className="font-bold text-base sm:text-lg">
               Roles y Permisos
             </span>
             <span className="text-xs sm:text-sm text-gray-500 dark:text-[#a3a3a3]">
@@ -197,14 +197,14 @@ const Settings = () => {
           </div>
         </div>
         <div
-          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-gray-50 rounded-lg px-4 py-3 sm:py-2 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
+          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-gray-50 rounded-lg px-4 py-4 sm:py-5 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
           onClick={() => toast.info("Próximamente")}
         >
-          <div className="flex justify-center items-center w-16 sm:w-24">
-            <FcSms className="text-6xl sm:text-8xl opacity-50" />
+          <div className="flex justify-center items-center w-12 sm:w-16">
+            <FcSms className="text-4xl sm:text-5xl opacity-50" />
           </div>
           <div className="grid text-center sm:text-left">
-            <span className="font-bold text-sm sm:text-base text-gray-500 dark:text-[#a3a3a3]">
+            <span className="font-bold text-base sm:text-lg text-gray-500 dark:text-[#a3a3a3]">
               Notificaciones
             </span>
             <span className="text-xs sm:text-sm text-gray-400">
@@ -213,14 +213,14 @@ const Settings = () => {
           </div>
         </div>
         <div
-          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-gray-50 rounded-lg px-4 py-3 sm:py-2 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
+          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-gray-50 rounded-lg px-4 py-4 sm:py-5 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
           onClick={() => toast.info("Próximamente")}
         >
-          <div className="flex justify-center items-center w-16 sm:w-24">
-            <FcBinoculars className="text-6xl sm:text-8xl opacity-50" />
+          <div className="flex justify-center items-center w-12 sm:w-16">
+            <FcBinoculars className="text-4xl sm:text-5xl opacity-50" />
           </div>
           <div className="grid text-center sm:text-left">
-            <span className="font-bold text-sm sm:text-base text-gray-500 dark:text-[#a3a3a3]">
+            <span className="font-bold text-base sm:text-lg text-gray-500 dark:text-[#a3a3a3]">
               Auditoría
             </span>
             <span className="text-xs sm:text-sm text-gray-400">
@@ -229,14 +229,14 @@ const Settings = () => {
           </div>
         </div>
         <div
-          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-gray-50 rounded-lg px-4 py-3 sm:py-2 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
+          className="col-span-1 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center bg-gray-50 rounded-lg px-4 py-4 sm:py-5 border-2 border-gray-100 dark:bg-[#111111] dark:border-[#1a1a1a] dark:text-[#a3a3a3] cursor-not-allowed opacity-70 grayscale transition-colors"
           onClick={() => toast.info("Próximamente")}
         >
-          <div className="flex justify-center items-center w-16 sm:w-24">
-            <FcDataBackup className="text-6xl sm:text-8xl opacity-50" />
+          <div className="flex justify-center items-center w-12 sm:w-16">
+            <FcDataBackup className="text-4xl sm:text-5xl opacity-50" />
           </div>
           <div className="grid text-center sm:text-left">
-            <span className="font-bold text-sm sm:text-base text-gray-500 dark:text-[#a3a3a3]">
+            <span className="font-bold text-base sm:text-lg text-gray-500 dark:text-[#a3a3a3]">
               Respaldos
             </span>
             <span className="text-xs sm:text-sm text-gray-400">
